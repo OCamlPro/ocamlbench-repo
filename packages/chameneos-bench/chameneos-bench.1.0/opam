@@ -1,0 +1,18 @@
+opam-version: "2.0"
+name: "chameneos-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+depends: [
+  "ocaml"
+  "lwt" {= "2.4.8"}
+  "async" {= "112.17.00"}
+]
+build: [ [make "-C" "chameneos-redux"] ]
+substs: [
+  "chameneos-th.bench"
+  "chameneos-evtchn.bench"
+  "chameneos-lwt.bench"
+  "chameneos-async.bench"
+]
+flags: light-uninstall

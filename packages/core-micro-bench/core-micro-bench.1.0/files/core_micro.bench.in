@@ -1,0 +1,3 @@
+((name core_micro)
+ (descr "A core benchmark.")
+ (cmd (%{bin}%/core_inline_runner_bench -benchmarks-runner)) (speed Slow))

@@ -1,0 +1,4 @@
+((name almabench)
+ (descr "A number-crunching benchmark.")
+ (cmd (%{bin}%/almabench)) (speed Slow)
+ (file_check (("%{share}%/almabench-bench/almabench-bench.output" "$OUTPUT$"))))

@@ -1,0 +1,19 @@
+opam-version: "2.0"
+name: "valet-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+depends: [
+  "ocaml"
+  "uuidm" {= "0.9.5"}
+  "lwt" {= "2.4.8"}
+  "async" {= "112.17.00"}
+  "ocplib-endian" {= "0.8"}
+  "react" {= "1.2.0"}
+]
+build: [ [make "-C" "valet"] ]
+substs: [
+  "valet_lwt.bench"
+  "valet_async.bench"
+]
+flags: light-uninstall

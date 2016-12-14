@@ -1,0 +1,6 @@
+share : [
+  "coqchk-int.bench"
+  "coqchk-parith.binpos.bench"
+  "coqc-int.bench"
+  "Int.v" {"src/Int.v"}
+]

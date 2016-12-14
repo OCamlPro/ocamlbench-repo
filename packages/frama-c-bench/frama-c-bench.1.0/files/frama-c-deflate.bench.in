@@ -1,0 +1,5 @@
+((name frama-c-deflate)
+ (descr "frama-c -slevel 1000000000 -no-results -no-val-show-progress t.c -val")
+ (cmd
+  (%{bin}%/frama-c -slevel 1000000000 -no-results -no-val-show-progress %{frama-c-bench:share}%/t.c -val))
+ (speed Slow))

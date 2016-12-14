@@ -1,0 +1,6 @@
+((name menhir-fancy)
+ (descr "menhir fancy-parser.mly")
+ (cmd (%{bin}%/menhir %{menhir-bench:share}%/fancy-parser.mly))
+ (file_check
+   (("%{menhir-bench:share}%/fancy-output.ml" "%{menhir-bench:share}%/fancy-parser.ml")))
+ (speed Fast) (discard (Stdout)))

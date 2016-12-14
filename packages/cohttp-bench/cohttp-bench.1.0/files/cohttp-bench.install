@@ -1,0 +1,9 @@
+bin: [
+  "cohttp/_build/cohttp_async_bench.native" {"cohttp_async_bench"}
+  "cohttp/_build/cohttp_lwt_bench.native" {"cohttp_lwt_bench"}
+]
+
+share: [
+  "cohttp_lwt.bench"
+  "cohttp_async.bench"
+]

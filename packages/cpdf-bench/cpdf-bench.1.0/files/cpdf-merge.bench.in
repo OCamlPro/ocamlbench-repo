@@ -1,0 +1,4 @@
+((name cpdf-merge)
+ (descr "Cpdf merge on two large files")
+ (cmd (%{bin}%/cpdf -merge %{cpdf-bench:share}%/pdfs/PDFReference16.pdf_toobig %{cpdf-bench:share}%/pdfs/metro_geo.pdf -o /dev/null))
+ (speed Slow))

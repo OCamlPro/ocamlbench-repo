@@ -1,0 +1,4 @@
+share: [
+  "core_tests/core_kernel_test.log"
+  "core_tests/core_test.log"
+]

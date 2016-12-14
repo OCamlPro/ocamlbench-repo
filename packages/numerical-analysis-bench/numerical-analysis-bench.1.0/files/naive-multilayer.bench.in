@@ -1,0 +1,4 @@
+((name numal-naive-multilayer)
+ (descr "numerical analysis benches (naive-multilayer)")
+ (cmd (%{bin}%/naive-multilayer))
+ (speed Slow))

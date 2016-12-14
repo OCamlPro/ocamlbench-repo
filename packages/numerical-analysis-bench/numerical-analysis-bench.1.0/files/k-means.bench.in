@@ -1,0 +1,4 @@
+((name numal-k-means)
+ (descr "numerical analysis benches (k-means)")
+ (cmd (%{bin}%/k-means))
+ (speed Slow))

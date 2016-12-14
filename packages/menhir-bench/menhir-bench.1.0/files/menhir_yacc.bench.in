@@ -1,0 +1,6 @@
+((name menhir-standard)
+ (descr "menhir standard.mly")
+ (cmd (%{bin}%/menhir %{menhir-bench:share}%/yacc-parser.mly))
+ (file_check
+   (("%{menhir-bench:share}%/yacc-output.ml" "%{menhir-bench:share}%/yacc-parser.ml")))
+ (speed Fast) (discard (Stdout)))

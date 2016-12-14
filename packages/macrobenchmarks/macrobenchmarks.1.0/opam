@@ -1,0 +1,27 @@
+opam-version: "2.0"
+name: "macrobenchmarks"
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+authors: "Various"
+homepage: "https://github.com/OCamlPro/ocaml-benchs"
+bug-reports: "https://github.com/OCamlPro/ocaml-benchs/issues"
+license: "Various"
+build: [
+  [ make ]
+]
+depends: [
+  "ocaml"
+  "ocamlfind" {build}
+  "lwt"
+  "camlimages"
+  "react"
+  "uuidm"
+  "ocplib-endian"
+]
+depopts: [ "async" "async_smtp" "core_bench" "cohttp" ]
+conflicts:
+  [
+    "cohttp" {< "0.15.0"}
+  ]
+dev-repo: "git@github.com:OCamlPro/ocaml-benchs.git"
+flags: light-uninstall

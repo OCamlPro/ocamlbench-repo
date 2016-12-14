@@ -1,0 +1,4 @@
+share: [
+  "core-sequence.bench"
+  "core-sequence-cps.bench"
+]

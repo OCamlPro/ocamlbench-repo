@@ -1,0 +1,8 @@
+bin: [
+  "almabench/almabench.native" {"almabench"}
+]
+
+share: [
+  "almabench-bench.bench"
+  "almabench-bench.output"
+]

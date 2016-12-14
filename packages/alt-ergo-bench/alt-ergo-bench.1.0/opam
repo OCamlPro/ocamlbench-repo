@@ -1,0 +1,11 @@
+opam-version: "2.0"
+name: "alt-ergo-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+build: [ "ocaml" "gen.ml" ]
+depends: ["ocaml" "alt-ergo"]
+substs: [
+  "gen.ml"
+]
+flags: light-uninstall

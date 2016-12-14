@@ -1,0 +1,3 @@
+((name bdd)
+ (descr "Binary decision diagram.")
+ (cmd (%{bin}%/bdd-bench)) (speed Slow))

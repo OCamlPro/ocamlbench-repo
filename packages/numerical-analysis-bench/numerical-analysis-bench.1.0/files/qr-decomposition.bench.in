@@ -1,0 +1,4 @@
+((name numal-qr-decomposition)
+ (descr "numerical analysis benches (qr-decomposition)")
+ (cmd (%{bin}%/qr-decomposition))
+ (speed Slow))

@@ -1,0 +1,4 @@
+((name numal-durand-kerner-aberth)
+ (descr "numerical analysis benches (durand-kerner-aberth)")
+ (cmd (%{bin}%/durand-kerner-aberth))
+ (speed Fast))

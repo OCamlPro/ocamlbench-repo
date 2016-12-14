@@ -1,0 +1,3 @@
+((name chameneos-lwt)
+ (descr "chameneos, Lwt")
+ (cmd (%{bin}%/chameneos_redux_lwt 300000)))

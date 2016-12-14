@@ -1,0 +1,5 @@
+((name "valet-async")
+ (descr "Access control simulation with Async")
+ (cmd (%{bin}%/valet_test_async 200))
+ (speed Slow)
+ (return_value 1))

@@ -1,0 +1,4 @@
+((name jsontrip-sample)
+ (descr "jsontrip sample.json")
+ (cmd (%{bin}%/jsontrip %{json-bench-data:share}%/sample.json))
+ (speed Fast) (discard (Stdout)))

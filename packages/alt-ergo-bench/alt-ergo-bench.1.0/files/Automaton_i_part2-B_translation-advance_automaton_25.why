@@ -1,0 +1,3579 @@
+(*
+Copyright 2012-2015 Consortium of the BWare ANR Project (ANR-12-INSE-0010)
+	  	    <http://bware.lri.fr/>
+Copyright 2012-2015 Cedric (CPR Team)
+	  	    David DELAHAYE
+	  	    <david.delahaye@cnam.fr>
+Copyright 2012-2015 LRI (VALS team)
+	  	    Sylvain CONCHON
+	  	    <sylvain.conchon@lri.fr>
+Copyright 2012-2015 Inria (Gallium, Deducteam)
+	  	    Damien DOLIGEZ
+	  	    <damien.doligez@inria.fr>
+Copyright 2012-2015 Mitsubishi Electric R&D Centre Europe
+	  	    David MENTRE
+	  	    <d.mentre@fr.merce.mee.com>
+Copyright 2012-2015 ClearSy
+	  	    Thierry LECOMTE
+	  	    <thierry.lecomte@clearsy.com>
+Copyright 2012-2015 OCamlPro
+	  	    Fabrice LE FESSANT
+		    <fabrice.le_fessant@ocamlpro.com>
+
+This file is a free software.
+
+This software is governed by the CeCILL-B license under French law and 
+abiding by the rules of distribution of free software.  
+You can use, modify and/or redistribute the software under the terms of the 
+CeCILL-B license as circulated by CEA, CNRS and INRIA at the following URL 
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL-B license and that you accept its terms.
+
+--------------------------------------------------------------------------------
+*)
+logic safe_comp_div: int, int -> int
+axiom safe_comp_div_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_div(x,y) = x / y
+logic safe_comp_mod: int, int -> int
+axiom safe_comp_mod_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_mod(x,y) = x % y
+logic match_bool : bool, 'a, 'a -> 'a
+
+axiom match_bool_True :
+  (forall z:'a. forall z1:'a. (match_bool(true, z, z1) = z))
+
+axiom match_bool_False :
+  (forall z:'a. forall z1:'a. (match_bool(false, z, z1) = z1))
+
+function andb(x: bool, y: bool) : bool = match_bool(x, y, false)
+
+function orb(x: bool, y: bool) : bool = match_bool(x, true, y)
+
+function xorb(x: bool, y: bool) : bool = match_bool(y, match_bool(x, false,
+  true), match_bool(x, true, false))
+
+function notb(x: bool) : bool = match_bool(x, false, true)
+
+function implb(x: bool, y: bool) : bool = match_bool(y, true, match_bool(x,
+  false, true))
+
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+logic power : int, int -> int
+
+axiom Power_0 : (forall x:int. (power(x, 0) = 1))
+
+axiom Power_s :
+  (forall x:int. forall n:int. ((0 <= n) -> (power(x,
+  (n + 1)) = (x * power(x, n)))))
+
+axiom Power_s_alt :
+  (forall x:int. forall n:int. ((0 <  n) -> (power(x, n) = (x * power(x,
+  (n - 1))))))
+
+axiom Power_1 : (forall x:int. (power(x, 1) = x))
+
+axiom Power_sum :
+  (forall x:int. forall n:int. forall m:int. ((0 <= n) -> ((0 <= m) ->
+  (power(x, (n + m)) = (power(x, n) * power(x, m))))))
+
+axiom Power_mult :
+  (forall x:int. forall n:int. forall m:int. ((0 <= n) -> ((0 <= m) ->
+  (power(x, (n * m)) = power(power(x, n), m)))))
+
+axiom Power_mult2 :
+  (forall x:int. forall y:int. forall n:int. ((0 <= n) -> (power((x * y),
+  n) = (power(x, n) * power(y, n)))))
+
+axiom Power_non_neg :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <= y)) -> (0 <= power(x,
+  y))))
+
+axiom Power_monotonic :
+  (forall x:int. forall n:int. forall m:int. (((0 <  x) and ((0 <= n) and
+  (n <= m))) -> (power(x, n) <= power(x, m))))
+
+logic abs : int -> int
+
+axiom abs_def48 : (forall x:int. ((0 <= x) -> (abs(x) = x)))
+
+axiom abs_def49 : (forall x:int. ((not (0 <= x)) -> (abs(x) = (-x))))
+
+axiom Abs_le72 : (forall x:int. forall y:int. ((abs(x) <= y) -> ((-y) <= x)))
+
+axiom Abs_le73 : (forall x:int. forall y:int. ((abs(x) <= y) -> (x <= y)))
+
+axiom Abs_le74 :
+  (forall x:int. forall y:int. ((((-y) <= x) and (x <= y)) -> (abs(x) <= y)))
+
+axiom Abs_pos : (forall x:int. (0 <= abs(x)))
+
+axiom Div_mod :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (x = ((y * safe_comp_div(x,y)) + safe_comp_mod(x,y)))))
+
+axiom Div_bound48 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_bound49 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= x)))
+
+axiom Mod_bound48 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  ((-abs(y)) <  safe_comp_mod(x,y))))
+
+axiom Mod_bound49 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (safe_comp_mod(x,y) <  abs(y))))
+
+axiom Div_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= 0)))
+
+axiom Mod_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (not (y = 0))) ->
+  (0 <= safe_comp_mod(x,y))))
+
+axiom Mod_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (not (y = 0))) ->
+  (safe_comp_mod(x,y) <= 0)))
+
+axiom Rounds_toward_zero :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (abs((safe_comp_div(x,y) * y)) <= abs(x))))
+
+axiom Div_1 : (forall x:int. (safe_comp_div(x,1) = x))
+
+axiom Mod_1 : (forall x:int. (safe_comp_mod(x,1) = 0))
+
+axiom Div_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_div(x,y) = 0)))
+
+axiom Mod_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_mod(x,y) = x)))
+
+axiom Div_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_div(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_div(((x * y) + z),x) = (y + safe_comp_div(z,x)))))
+
+axiom Mod_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_mod(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_mod(((x * y) + z),x) = safe_comp_mod(z,x))))
+
+type 'a set
+
+logic mem : 'a, 'a set -> prop
+
+predicate infix_eqeq(s1: 'a set, s2: 'a set) =
+  (forall x:'a. (mem(x, s1) <-> mem(x, s2)))
+
+axiom extensionality :
+  (forall s1:'a set. forall s2:'a set. (infix_eqeq(s1, s2) -> (s1 = s2)))
+
+predicate subset(s1: 'a set, s2: 'a set) =
+  (forall x:'a. (mem(x, s1) -> mem(x, s2)))
+
+axiom subset_refl : (forall s:'a set. subset(s, s))
+
+axiom subset_trans :
+  (forall s1:'a set. forall s2:'a set. forall s3:'a set. (subset(s1, s2) ->
+  (subset(s2, s3) -> subset(s1, s3))))
+
+logic empty : 'a set
+
+predicate is_empty(s: 'a set) = (forall x:'a. (not mem(x, s)))
+
+axiom empty_def1 : is_empty((empty : 'a set))
+
+axiom mem_empty48 : (forall x:'a. (not mem(x, (empty : 'a set))))
+
+axiom mem_empty49 : true
+
+logic add : 'a, 'a set -> 'a set
+
+axiom add_def148 :
+  (forall x:'a. forall y:'a.
+  (forall s:'a set. (mem(x, add(y, s)) -> ((x = y) or mem(x, s)))))
+
+axiom add_def149 :
+  (forall x:'a. forall y:'a.
+  (forall s:'a set. (((x = y) or mem(x, s)) -> mem(x, add(y, s)))))
+
+logic remove : 'a, 'a set -> 'a set
+
+axiom remove_def172 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem(x, remove(y, s)) ->
+  (not (x = y))))
+
+axiom remove_def173 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem(x, remove(y, s)) -> mem(x,
+  s)))
+
+axiom remove_def174 :
+  (forall x:'a. forall y:'a. forall s:'a set. (((not (x = y)) and mem(x,
+  s)) -> mem(x, remove(y, s))))
+
+axiom add_remove :
+  (forall x:'a. forall s:'a set. (mem(x, s) -> (add(x, remove(x, s)) = s)))
+
+axiom remove_add :
+  (forall x:'a. forall s:'a set. (remove(x, add(x, s)) = remove(x, s)))
+
+axiom subset_remove : (forall x:'a. forall s:'a set. subset(remove(x, s), s))
+
+logic union : 'a set, 'a set -> 'a set
+
+axiom union_def148 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, union(s1, s2)) ->
+  (mem(x, s1) or mem(x, s2))))
+
+axiom union_def149 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. ((mem(x, s1) or mem(x,
+  s2)) -> mem(x, union(s1, s2))))
+
+logic inter : 'a set, 'a set -> 'a set
+
+axiom inter_def172 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, inter(s1, s2)) ->
+  mem(x, s1)))
+
+axiom inter_def173 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, inter(s1, s2)) ->
+  mem(x, s2)))
+
+axiom inter_def174 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. ((mem(x, s1) and mem(x,
+  s2)) -> mem(x, inter(s1, s2))))
+
+logic diff : 'a set, 'a set -> 'a set
+
+axiom diff_def172 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, diff(s1, s2)) ->
+  mem(x, s1)))
+
+axiom diff_def173 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, diff(s1, s2)) ->
+  (not mem(x, s2))))
+
+axiom diff_def174 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. ((mem(x, s1) and
+  (not mem(x, s2))) -> mem(x, diff(s1, s2))))
+
+axiom subset_diff :
+  (forall s1:'a set. forall s2:'a set. subset(diff(s1, s2), s1))
+
+logic choose : 'a set -> 'a
+
+axiom choose_def :
+  (forall s:'a set. ((not is_empty(s)) -> mem(choose(s), s)))
+
+logic all : 'a set
+
+axiom all_def : (forall x:'a. mem(x, (all : 'a set)))
+
+logic b_bool : bool set
+
+axiom mem_b_bool : (forall x:bool. mem(x, b_bool))
+
+logic integer : int set
+
+axiom mem_integer : (forall x:int. mem(x, integer))
+
+logic natural : int set
+
+axiom mem_natural57 : (forall x:int. (mem(x, natural) -> (0 <= x)))
+
+axiom mem_natural58 : (forall x:int. ((0 <= x) -> mem(x, natural)))
+
+logic natural1 : int set
+
+axiom mem_natural149 : (forall x:int. (mem(x, natural1) -> (0 <  x)))
+
+axiom mem_natural150 : (forall x:int. ((0 <  x) -> mem(x, natural1)))
+
+logic nat : int set
+
+axiom mem_nat81 : (forall x:int. (mem(x, nat) -> (0 <= x)))
+
+axiom mem_nat82 : (forall x:int. (mem(x, nat) -> (x <= 2147483647)))
+
+axiom mem_nat83 :
+  (forall x:int. (((0 <= x) and (x <= 2147483647)) -> mem(x, nat)))
+
+logic nat1 : int set
+
+axiom mem_nat173 : (forall x:int. (mem(x, nat1) -> (0 <  x)))
+
+axiom mem_nat174 : (forall x:int. (mem(x, nat1) -> (x <= 2147483647)))
+
+axiom mem_nat175 :
+  (forall x:int. (((0 <  x) and (x <= 2147483647)) -> mem(x, nat1)))
+
+logic bounded_int : int set
+
+axiom mem_bounded_int72 :
+  (forall x:int. (mem(x, bounded_int) -> ((-2147483647) <= x)))
+
+axiom mem_bounded_int73 :
+  (forall x:int. (mem(x, bounded_int) -> (x <= 2147483647)))
+
+axiom mem_bounded_int74 :
+  (forall x:int. ((((-2147483647) <= x) and (x <= 2147483647)) -> mem(x,
+  bounded_int)))
+
+logic mk : int, int -> int set
+
+axiom mem_interval72 :
+  (forall x:int. forall a:int. forall b:int [mem(x, mk(a, b))]. (mem(x, mk(a,
+  b)) -> (a <= x)))
+
+axiom mem_interval73 :
+  (forall x:int. forall a:int. forall b:int [mem(x, mk(a, b))]. (mem(x, mk(a,
+  b)) -> (x <= b)))
+
+axiom mem_interval74 :
+  (forall x:int. forall a:int. forall b:int [mem(x, mk(a, b))].
+  (((a <= x) and (x <= b)) -> mem(x, mk(a, b))))
+
+axiom interval_empty :
+  (forall a:int. forall b:int. ((b <  a) -> (mk(a, b) = (empty : int set))))
+
+axiom interval_add :
+  (forall a:int. forall b:int. ((a <= b) -> (mk(a, b) = add(b, mk(a,
+  (b - 1))))))
+
+logic power1 : 'a set -> 'a set set
+
+axiom mem_power48 :
+  (forall x:'a set. forall y:'a set [mem(x, power1(y))]. (mem(x,
+  power1(y)) -> subset(x, y)))
+
+axiom mem_power49 :
+  (forall x:'a set. forall y:'a set [mem(x, power1(y))]. (subset(x, y) ->
+  mem(x, power1(y))))
+
+logic non_empty_power : 'a set -> 'a set set
+
+axiom mem_non_empty_power72 :
+  (forall x:'a set. forall y:'a set [mem(x, non_empty_power(y))]. (mem(x,
+  non_empty_power(y)) -> subset(x, y)))
+
+axiom mem_non_empty_power73 :
+  (forall x:'a set. forall y:'a set [mem(x, non_empty_power(y))]. (mem(x,
+  non_empty_power(y)) -> (not (x = (empty : 'a set)))))
+
+axiom mem_non_empty_power74 :
+  (forall x:'a set. forall y:'a set [mem(x, non_empty_power(y))]. ((subset(x,
+  y) and (not (x = (empty : 'a set)))) -> mem(x, non_empty_power(y))))
+
+type ('a, 'a1) tuple2 = { Tuple2_proj_1 : 'a; Tuple2_proj_2 : 'a1
+}
+
+logic relation : 'a2 set, 'b set -> ('a2, 'b) tuple2 set set
+
+axiom mem_relation72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  relation(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(x, s)))))
+
+axiom mem_relation73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  relation(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(y, t)))))
+
+axiom mem_relation74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  ((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+   f) -> (mem(x, s) and mem(y, t)))) ->
+  mem(f, relation(s, t))))
+
+logic image : ('a, 'b) tuple2 set, 'a set -> 'b set
+
+axiom mem_image48 :
+  (forall r:('a, 'b) tuple2 set. forall dom1:'a set. forall y:'b [mem(y,
+  image(r, dom1))]. (mem(y, image(r, dom1)) ->
+  (exists x:'a. (mem(x, dom1) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+  }, r)))))
+
+axiom mem_image49 :
+  (forall r:('a, 'b) tuple2 set. forall dom1:'a set. forall y:'b [mem(y,
+  image(r, dom1))].
+  ((exists x:'a. (mem(x, dom1) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+   }, r))) ->
+  mem(y, image(r, dom1))))
+
+axiom image_union :
+  (forall r:('a, 'b) tuple2 set. forall s:'a set. forall t:'a set. (image(r,
+  union(s, t)) = union(image(r, s), image(r, t))))
+
+axiom image_add :
+  (forall r:('a, 'b) tuple2 set. forall dom1:'a set. forall x:'a. (image(r,
+  add(x, dom1)) = union(image(r, add(x, (empty : 'a set))), image(r, dom1))))
+
+logic infix_plmngt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_function96 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngt(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(x, s)))))
+
+axiom mem_function97 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngt(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(y, t)))))
+
+axiom mem_function98 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngt(s, t)) ->
+  (forall x:'a. forall y1:'b. forall y2:'b. ((mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y1 }, f) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y2 },
+  f)) -> (y1 = y2)))))
+
+axiom mem_function99 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  (((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+    f) -> (mem(x, s) and mem(y, t)))) and
+  (forall x:'a. forall y1:'b. forall y2:'b. ((mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y1 }, f) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y2 },
+  f)) -> (y1 = y2)))) -> mem(f, infix_plmngt(s, t))))
+
+axiom domain_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall x:'a. forall y:'b. (mem(f, infix_plmngt(s, t)) -> (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, f) -> mem(x, s))))
+
+axiom range_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall x:'a. forall y:'b. (mem(f, infix_plmngt(s, t)) -> (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, f) -> mem(y, t))))
+
+axiom function_extend_range :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall u:'b set. (subset(t, u) -> (mem(f, infix_plmngt(s, t)) -> mem(f,
+  infix_plmngt(s, u)))))
+
+axiom function_reduce_range :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall u:'b set. (subset(u, t) -> (mem(f, infix_plmngt(s, t)) ->
+  ((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+   f) -> mem(y, u))) ->
+  mem(f, infix_plmngt(s, u))))))
+
+logic inverse : ('a, 'b) tuple2 set -> ('b, 'a) tuple2 set
+
+axiom Inverse_def48 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = x },
+  inverse(r)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r))))
+
+axiom Inverse_def49 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r) -> mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = x }, inverse(r)))))
+
+logic dom : ('a, 'b) tuple2 set -> 'a set
+
+axiom dom_def48 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a. (mem(x, dom(r)) ->
+  (exists y:'b. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)))))
+
+axiom dom_def49 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a.
+  ((exists y:'b. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)) -> mem(x,
+  dom(r)))))
+
+logic ran : ('a, 'b) tuple2 set -> 'b set
+
+axiom ran_def48 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall y:'b. (mem(y, ran(r)) ->
+  (exists x:'a. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)))))
+
+axiom ran_def49 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall y:'b.
+  ((exists x:'a. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)) -> mem(y,
+  ran(r)))))
+
+axiom dom_empty : (dom((empty : ('a, 'b) tuple2 set)) = (empty : 'a set))
+
+axiom dom_add :
+  (forall f:('a, 'b) tuple2 set. forall x:'a. forall y:'b. (dom(add({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, f)) = add(x, dom(f))))
+
+axiom dom_singleton :
+  (forall x:'a. forall y:'b. (dom(add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+  }, (empty : ('a, 'b) tuple2 set))) = add(x, (empty : 'a set))))
+
+logic infix_mnmngt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_total_functions72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_mnmngt(s, t)) -> mem(f, infix_plmngt(s, t))))
+
+axiom mem_total_functions73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_mnmngt(s, t)) -> (dom(f) = s)))
+
+axiom mem_total_functions74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_plmngt(s, t)) and (dom(f) = s)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom total_function_is_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set [mem(f,
+  infix_mnmngt(s, t))]. (mem(f, infix_mnmngt(s, t)) -> mem(f, infix_plmngt(s,
+  t))))
+
+axiom singleton_is_partial_function :
+  (forall s:'a set. forall t:'b set. forall x:'a. forall y:'b. ((mem(x,
+  s) and mem(y, t)) -> mem(add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  (empty : ('a, 'b) tuple2 set)), infix_plmngt(s, t))))
+
+axiom singleton_is_function :
+  (forall x:'a. forall y:'b [add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  (empty : ('a, 'b) tuple2 set))]. mem(add({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, (empty : ('a, 'b) tuple2 set)), infix_mnmngt(add(x,
+  (empty : 'a set)), add(y, (empty : 'b set)))))
+
+logic apply : ('a, 'b) tuple2 set, 'a -> 'b
+
+axiom apply_def0 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall a1:'a. ((mem(f, infix_plmngt(s, t)) and mem(a1, dom(f))) -> mem({
+  Tuple2_proj_1 = a1; Tuple2_proj_2 = apply(f, a1) }, f)))
+
+axiom apply_def1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall a1:'a. ((mem(f, infix_mnmngt(s, t)) and mem(a1, s)) -> mem({
+  Tuple2_proj_1 = a1; Tuple2_proj_2 = apply(f, a1) }, f)))
+
+axiom apply_def2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall a1:'a. forall b1:'b. ((mem(f, infix_plmngt(s, t)) and mem({
+  Tuple2_proj_1 = a1; Tuple2_proj_2 = b1 }, f)) -> (apply(f, a1) = b1)))
+
+axiom apply_singleton :
+  (forall x:'a. forall y:'b. (apply(add({ Tuple2_proj_1 = x; Tuple2_proj_2 =
+  y }, (empty : ('a, 'b) tuple2 set)), x) = y))
+
+axiom apply_range :
+  (forall x:'a. forall f:('a, 'b) tuple2 set. forall s:'a set.
+  forall t:'b set [mem(f, infix_plmngt(s, t)), apply(f, x)]. ((mem(f,
+  infix_plmngt(s, t)) and mem(x, dom(f))) -> mem(apply(f, x), t)))
+
+logic semicolon : ('a, 'b) tuple2 set, ('b, 'c) tuple2 set -> ('a,
+  'c) tuple2 set
+
+axiom semicolon_def48 :
+  (forall x:'a. forall z:'c. forall p:('a, 'b) tuple2 set. forall q:('b,
+  'c) tuple2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = z }, semicolon(p,
+  q)) ->
+  (exists y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, p) and mem({
+  Tuple2_proj_1 = y; Tuple2_proj_2 = z }, q)))))
+
+axiom semicolon_def49 :
+  (forall x:'a. forall z:'c. forall p:('a, 'b) tuple2 set. forall q:('b,
+  'c) tuple2 set.
+  ((exists y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, p) and mem({
+   Tuple2_proj_1 = y; Tuple2_proj_2 = z }, q))) ->
+  mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = z }, semicolon(p, q))))
+
+logic direct_product : ('a, 'b) tuple2 set, ('a, 'c) tuple2 set -> ('a, ('b,
+  'c) tuple2) tuple2 set
+
+axiom direct_product_def48 :
+  (forall e:('t, ('u, 'v) tuple2) tuple2. forall r1:('t, 'u) tuple2 set.
+  forall r2:('t, 'v) tuple2 set [mem(e, direct_product(r1, r2))]. (mem(e,
+  direct_product(r1, r2)) ->
+  (exists x:'t. exists y:'u. exists z:'v. (({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = { Tuple2_proj_1 = y; Tuple2_proj_2 = z } } = e) and (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r1) and mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = z }, r2))))))
+
+axiom direct_product_def49 :
+  (forall e:('t, ('u, 'v) tuple2) tuple2. forall r1:('t, 'u) tuple2 set.
+  forall r2:('t, 'v) tuple2 set [mem(e, direct_product(r1, r2))].
+  ((exists x:'t. exists y:'u. exists z:'v. (({ Tuple2_proj_1 = x;
+   Tuple2_proj_2 = { Tuple2_proj_1 = y; Tuple2_proj_2 = z } } = e) and (mem({
+   Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r1) and mem({ Tuple2_proj_1 = x;
+   Tuple2_proj_2 = z }, r2)))) ->
+  mem(e, direct_product(r1, r2))))
+
+logic parallel_product : ('a, 'b) tuple2 set, ('c, 'd) tuple2 set -> (('a,
+  'c) tuple2, ('b, 'd) tuple2) tuple2 set
+
+axiom parallel_product_def48 :
+  (forall e:(('t, 'v) tuple2, ('u, 'w) tuple2) tuple2. forall r1:('t,
+  'u) tuple2 set. forall r2:('v, 'w) tuple2 set. (mem(e, parallel_product(r1,
+  r2)) ->
+  (exists x:'t. exists y:'v. exists z:'u. exists a:'w. (({ Tuple2_proj_1 = {
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }; Tuple2_proj_2 = { Tuple2_proj_1 =
+  z; Tuple2_proj_2 = a } } = e) and (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 =
+  z }, r1) and mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = a }, r2))))))
+
+axiom parallel_product_def49 :
+  (forall e:(('t, 'v) tuple2, ('u, 'w) tuple2) tuple2. forall r1:('t,
+  'u) tuple2 set. forall r2:('v, 'w) tuple2 set.
+  ((exists x:'t. exists y:'v. exists z:'u. exists a:'w. (({ Tuple2_proj_1 = {
+   Tuple2_proj_1 = x; Tuple2_proj_2 = y }; Tuple2_proj_2 = { Tuple2_proj_1 =
+   z; Tuple2_proj_2 = a } } = e) and (mem({ Tuple2_proj_1 = x;
+   Tuple2_proj_2 = z }, r1) and mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = a },
+   r2)))) ->
+  mem(e, parallel_product(r1, r2))))
+
+axiom semicolon_dom :
+  (forall f:('a, 'b) tuple2 set. forall g:('b, 'c) tuple2 set.
+  subset(dom(semicolon(f, g)), dom(f)))
+
+axiom semicolon_is_function :
+  (forall f:('a, 'b) tuple2 set. forall g:('b, 'c) tuple2 set.
+  forall s:'a set. forall t:'b set. forall u:'c set. ((mem(f, infix_plmngt(s,
+  t)) and mem(g, infix_plmngt(t, u))) -> mem(semicolon(f, g), infix_plmngt(s,
+  u))))
+
+axiom apply_compose :
+  (forall x:'a. forall f:('a, 'b) tuple2 set. forall g:('b, 'c) tuple2 set.
+  forall s:'a set. forall t:'b set. forall u:'c set. ((mem(f, infix_plmngt(s,
+  t)) and (mem(g, infix_plmngt(t, u)) and (mem(x, dom(f)) and mem(apply(f,
+  x), dom(g))))) -> (apply(semicolon(f, g), x) = apply(g, apply(f, x)))))
+
+logic infix_gtplgt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_partial_injection72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtplgt(s, t)) -> mem(f, infix_plmngt(s, t))))
+
+axiom mem_partial_injection73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtplgt(s, t)) -> mem(inverse(f), infix_plmngt(t, s))))
+
+axiom mem_partial_injection74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_plmngt(s, t)) and mem(inverse(f), infix_plmngt(t, s))) -> mem(f,
+  infix_gtplgt(s, t))))
+
+logic infix_gtmngt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_total_injection72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(f, infix_gtplgt(s, t))))
+
+axiom mem_total_injection73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom mem_total_injection74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_gtplgt(s, t)) and mem(f, infix_mnmngt(s, t))) -> mem(f,
+  infix_gtmngt(s, t))))
+
+axiom mem_total_injection_alt72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom mem_total_injection_alt73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(inverse(f), infix_plmngt(t, s))))
+
+axiom mem_total_injection_alt74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_mnmngt(s, t)) and mem(inverse(f), infix_plmngt(t, s))) -> mem(f,
+  infix_gtmngt(s, t))))
+
+axiom injection :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  (forall x:'a. forall y:'a. (mem(f, infix_gtmngt(s, t)) -> (mem(x, s) ->
+  (mem(y, s) -> ((apply(f, x) = apply(f, y)) -> (x = y)))))))
+
+logic infix_plmngtgt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_partial_surjection72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngtgt(s, t)) -> mem(f, infix_plmngt(s, t))))
+
+axiom mem_partial_surjection73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngtgt(s, t)) -> (ran(f) = t)))
+
+axiom mem_partial_surjection74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_plmngt(s, t)) and (ran(f) = t)) -> mem(f, infix_plmngtgt(s, t))))
+
+logic infix_mnmngtgt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_total_surjection72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_mnmngtgt(s, t)) -> mem(f, infix_plmngtgt(s, t))))
+
+axiom mem_total_surjection73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_mnmngtgt(s, t)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom mem_total_surjection74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_plmngtgt(s, t)) and mem(f, infix_mnmngt(s, t))) -> mem(f,
+  infix_mnmngtgt(s, t))))
+
+logic infix_gtplgtgt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_partial_bijection72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtplgtgt(s, t)) -> mem(f, infix_gtplgt(s, t))))
+
+axiom mem_partial_bijection73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtplgtgt(s, t)) -> mem(f, infix_plmngtgt(s, t))))
+
+axiom mem_partial_bijection74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_gtplgt(s, t)) and mem(f, infix_plmngtgt(s, t))) -> mem(f,
+  infix_gtplgtgt(s, t))))
+
+logic infix_gtmngtgt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_total_bijection72 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngtgt(s, t)) -> mem(f, infix_gtmngt(s, t))))
+
+axiom mem_total_bijection73 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngtgt(s, t)) -> mem(f, infix_mnmngtgt(s, t))))
+
+axiom mem_total_bijection74 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_gtmngt(s, t)) and mem(f, infix_mnmngtgt(s, t))) -> mem(f,
+  infix_gtmngtgt(s, t))))
+
+logic id : 'a set -> ('a, 'a) tuple2 set
+
+axiom id_def72 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, id(s)) -> mem(x, s)))
+
+axiom id_def73 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, id(s)) -> (x = y)))
+
+axiom id_def74 :
+  (forall x:'a. forall y:'a. forall s:'a set. ((mem(x, s) and (x = y)) ->
+  mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, id(s))))
+
+axiom id_dom : (forall s:'a set. (dom(id(s)) = s))
+
+axiom id_ran : (forall s:'a set. (ran(id(s)) = s))
+
+axiom id_fun : (forall s:'a set. mem(id(s), infix_plmngt(s, s)))
+
+axiom id_total_fun : (forall s:'a set. mem(id(s), infix_mnmngt(s, s)))
+
+function seq_length(n: int, s: 'a set) : (int, 'a) tuple2 set set =
+  infix_mnmngt(mk(1, n), s)
+
+axiom length_uniq :
+  (forall n1:int. forall n2:int. forall s1:'a set. forall s2:'a set.
+  forall r:(int, 'a) tuple2 set. (((0 <= n1) and mem(r, seq_length(n1,
+  s1))) -> (((0 <= n2) and mem(r, seq_length(n2, s2))) -> (n1 = n2))))
+
+logic size : (int, 'a) tuple2 set -> int
+
+axiom size_def :
+  (forall n:int. forall s:'a set. forall r:(int, 'a) tuple2 set.
+  (((0 <= n) and mem(r, seq_length(n, s))) -> (size(r) = n)))
+
+logic seq : 'a set -> (int, 'a) tuple2 set set
+
+axiom seq_def72 :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (mem(r, seq(s)) ->
+  (0 <= size(r))))
+
+axiom seq_def73 :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (mem(r, seq(s)) -> mem(r,
+  seq_length(size(r), s))))
+
+axiom seq_def74 :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (((0 <= size(r)) and
+  mem(r, seq_length(size(r), s))) -> mem(r, seq(s))))
+
+axiom seq_as_total_function :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (mem(r, seq(s)) -> mem(r,
+  infix_mnmngt(mk(1, size(r)), s))))
+
+logic seq1 : 'a set -> (int, 'a) tuple2 set set
+
+logic iseq : 'a set -> (int, 'a) tuple2 set set
+
+logic iseq1 : 'a set -> (int, 'a) tuple2 set set
+
+logic perm : 'a set -> (int, 'a) tuple2 set set
+
+logic is_finite_subset : 'a set, 'a set, int -> prop
+
+axiom Empty : (forall s:'a set. is_finite_subset((empty : 'a set), s, 0))
+
+axiom Add_mem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set. forall c:int.
+  (is_finite_subset(s1, s2, c) -> (mem(x, s2) -> (mem(x, s1) ->
+  is_finite_subset(add(x, s1), s2, c)))))
+
+axiom Add_notmem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set. forall c:int.
+  (is_finite_subset(s1, s2, c) -> (mem(x, s2) -> ((not mem(x, s1)) ->
+  is_finite_subset(add(x, s1), s2, (c + 1))))))
+
+axiom is_finite_subset_inversion :
+  (forall z:'a set. forall z1:'a set. forall z2:int. (is_finite_subset(z, z1,
+  z2) ->
+  (((exists s:'a set. (((z = (empty : 'a set)) and (z1 = s)) and (z2 = 0))) or
+  (exists x:'a. exists s1:'a set. exists s2:'a set. exists c:int.
+  (is_finite_subset(s1, s2, c) and (mem(x, s2) and (mem(x, s1) and
+  (((z = add(x, s1)) and (z1 = s2)) and (z2 = c))))))) or
+  (exists x:'a. exists s1:'a set. exists s2:'a set. exists c:int.
+  (is_finite_subset(s1, s2, c) and (mem(x, s2) and ((not mem(x, s1)) and
+  (((z = add(x, s1)) and (z1 = s2)) and (z2 = (c + 1))))))))))
+
+axiom finite_interval :
+  (forall a:int. forall b:int. ((a <= b) -> is_finite_subset(mk(a, b),
+  integer, ((b - a) + 1))))
+
+axiom finite_interval_empty :
+  (forall a:int. forall b:int. ((b <  a) -> is_finite_subset(mk(a, b),
+  integer, 0)))
+
+logic finite_subsets : 'a set -> 'a set set
+
+axiom finite_subsets_def48 :
+  (forall s:'a set. forall x:'a set. (mem(x, finite_subsets(s)) ->
+  (exists c:int. is_finite_subset(x, s, c))))
+
+axiom finite_subsets_def49 :
+  (forall s:'a set. forall x:'a set.
+  ((exists c:int. is_finite_subset(x, s, c)) -> mem(x, finite_subsets(s))))
+
+axiom finite_Empty :
+  (forall s:'a set. mem((empty : 'a set), finite_subsets(s)))
+
+axiom finite_Add :
+  (forall x:'a. forall s1:'a set. forall s2:'a set. (mem(s1,
+  finite_subsets(s2)) -> (mem(x, s2) -> mem(add(x, s1),
+  finite_subsets(s2)))))
+
+axiom finite_Union :
+  (forall s1:'a set. forall s2:'a set. forall s3:'a set. (mem(s1,
+  finite_subsets(s3)) -> (mem(s2, finite_subsets(s3)) -> mem(union(s1, s2),
+  finite_subsets(s3)))))
+
+axiom finite_inversion :
+  (forall s1:'a set. forall s2:'a set. (mem(s1, finite_subsets(s2)) ->
+  ((s1 = (empty : 'a set)) or
+  (exists x:'a. exists s3:'a set. ((s1 = add(x, s3)) and mem(s3,
+  finite_subsets(s2)))))))
+
+logic non_empty_finite_subsets : 'a set -> 'a set set
+
+axiom non_empty_finite_subsets_def48 :
+  (forall s:'a set. forall x:'a set. (mem(x, non_empty_finite_subsets(s)) ->
+  (exists c:int. (is_finite_subset(x, s, c) and
+  (not (x = (empty : 'a set)))))))
+
+axiom non_empty_finite_subsets_def49 :
+  (forall s:'a set. forall x:'a set.
+  ((exists c:int. (is_finite_subset(x, s, c) and
+   (not (x = (empty : 'a set))))) ->
+  mem(x, non_empty_finite_subsets(s))))
+
+axiom card_non_neg :
+  (forall s:'a set. forall x:'a set. forall c:int. (is_finite_subset(x, s,
+  c) -> (0 <= c)))
+
+axiom card_unique :
+  (forall s:'a set. forall x:'a set. forall c1:int. forall c2:int.
+  (is_finite_subset(x, s, c1) -> (is_finite_subset(x, s, c2) -> (c1 = c2))))
+
+logic card : 'a set -> int
+
+axiom card_def :
+  (forall s:'a set. forall x:'a set. forall c:int. (is_finite_subset(x, s,
+  c) -> (card(x) = c)))
+
+axiom card_Empty : (card((empty : 'a set)) = 0)
+
+axiom card_Add_not_mem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set [mem(s1,
+  finite_subsets(s2)), card(add(x, s1))]. (mem(s1, finite_subsets(s2)) ->
+  ((not mem(x, s1)) -> (card(add(x, s1)) = (card(s1) + 1)))))
+
+axiom card_Add_mem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set [mem(s1,
+  finite_subsets(s2)), card(add(x, s1))]. (mem(s1, finite_subsets(s2)) ->
+  (mem(x, s1) -> (card(add(x, s1)) = card(s1)))))
+
+axiom card_Union :
+  (forall s1:'a set. forall s2:'a set. forall s3:'a set [mem(s1,
+  finite_subsets(s3)), mem(s2, finite_subsets(s3)), card(union(s1, s2))].
+  (mem(s1, finite_subsets(s3)) -> (mem(s2, finite_subsets(s3)) ->
+  (is_empty(inter(s1, s2)) -> (card(union(s1,
+  s2)) = (card(s1) + card(s2)))))))
+
+logic times : 'a set, 'b set -> ('a, 'b) tuple2 set
+
+axiom times_def72 :
+  (forall a:'a1 set. forall b:'b1 set. forall x:'a1. forall y:'b1 [mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))]. (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b)) -> mem(x, a)))
+
+axiom times_def73 :
+  (forall a:'a1 set. forall b:'b1 set. forall x:'a1. forall y:'b1 [mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))]. (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b)) -> mem(y, b)))
+
+axiom times_def74 :
+  (forall a:'a1 set. forall b:'b1 set. forall x:'a1. forall y:'b1 [mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))]. ((mem(x, a) and
+  mem(y, b)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))))
+
+function relations(u: 'a set, v: 'b set) : ('a, 'b) tuple2 set set =
+  power1(times(u, v))
+
+axiom break_mem_in_add48 :
+  (forall c:('a, 'b) tuple2. forall s:('a, 'b) tuple2 set. forall x:'a.
+  forall y:'b. (mem(c, add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, s)) ->
+  ((c = { Tuple2_proj_1 = x; Tuple2_proj_2 = y }) or mem(c, s))))
+
+axiom break_mem_in_add49 :
+  (forall c:('a, 'b) tuple2. forall s:('a, 'b) tuple2 set. forall x:'a.
+  forall y:'b. (((c = { Tuple2_proj_1 = x; Tuple2_proj_2 = y }) or mem(c,
+  s)) -> mem(c, add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, s))))
+
+axiom break_power_times48 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (mem(r,
+  power1(times(u, v))) -> subset(r, times(u, v))))
+
+axiom break_power_times49 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (subset(r,
+  times(u, v)) -> mem(r, power1(times(u, v)))))
+
+axiom subset_of_times72 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (subset(r,
+  times(u, v)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r) -> mem(x, u)))))
+
+axiom subset_of_times73 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (subset(r,
+  times(u, v)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r) -> mem(y, v)))))
+
+axiom subset_of_times74 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set.
+  ((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+   r) -> (mem(x, u) and mem(y, v)))) ->
+  subset(r, times(u, v))))
+
+axiom apply_times :
+  (forall s:'a set. forall x:'a. forall y:'b [apply(times(s, add(y,
+  (empty : 'b set))), x)]. (mem(x, s) -> (apply(times(s, add(y,
+  (empty : 'b set))), x) = y)))
+
+logic range_restriction : ('a, 'b) tuple2 set, 'b set -> ('a, 'b) tuple2 set
+
+axiom range_restriction_def72 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e2 set. (subset(f, ran(r)) -> (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, range_restriction(r, f)) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r))))
+
+axiom range_restriction_def73 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e2 set. (subset(f, ran(r)) -> (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, range_restriction(r, f)) -> mem(y, f))))
+
+axiom range_restriction_def74 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e2 set. (subset(f, ran(r)) -> ((mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r) and mem(y, f)) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, range_restriction(r, f)))))
+
+logic range_substraction : ('a, 'b) tuple2 set, 'b set -> ('a, 'b) tuple2 set
+
+axiom range_substraction_def72 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  range_substraction(r, f)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r)))
+
+axiom range_substraction_def73 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  range_substraction(r, f)) -> (not mem(y, f))))
+
+axiom range_substraction_def74 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e2 set. ((mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r) and
+  (not mem(y, f))) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  range_substraction(r, f))))
+
+logic domain_restriction : 'a set, ('a, 'b) tuple2 set -> ('a, 'b) tuple2 set
+
+axiom domain_restriction_def72 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e1 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  domain_restriction(f, r)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r)))
+
+axiom domain_restriction_def73 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e1 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  domain_restriction(f, r)) -> mem(x, f)))
+
+axiom domain_restriction_def74 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e1 set. ((mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r) and
+  mem(x, f)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  domain_restriction(f, r))))
+
+logic domain_substraction : 'a set, ('a, 'b) tuple2 set -> ('a,
+  'b) tuple2 set
+
+axiom domain_substraction_def72 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e1 set. (subset(f, dom(r)) -> (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, domain_substraction(f, r)) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r))))
+
+axiom domain_substraction_def73 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e1 set. (subset(f, dom(r)) -> (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, domain_substraction(f, r)) -> (not mem(x, f)))))
+
+axiom domain_substraction_def74 :
+  (forall x:'e1. forall y:'e2. forall r:('e1, 'e2) tuple2 set.
+  forall f:'e1 set. (subset(f, dom(r)) -> ((mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r) and (not mem(x, f))) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, domain_substraction(f, r)))))
+
+logic infix_lspl : ('a, 'b) tuple2 set, ('a, 'b) tuple2 set -> ('a,
+  'b) tuple2 set
+
+axiom overriding_def72 :
+  (forall x:'a. forall y:'b. forall q:('a, 'b) tuple2 set. forall r:('a,
+  'b) tuple2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  infix_lspl(q, r)) -> (mem(x, dom(r)) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r))))
+
+axiom overriding_def73 :
+  (forall x:'a. forall y:'b. forall q:('a, 'b) tuple2 set. forall r:('a,
+  'b) tuple2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  infix_lspl(q, r)) -> ((not mem(x, dom(r))) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, q))))
+
+axiom overriding_def74 :
+  (forall x:'a. forall y:'b. forall q:('a, 'b) tuple2 set. forall r:('a,
+  'b) tuple2 set. (((mem(x, dom(r)) and mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r)) or ((not mem(x, dom(r))) and mem({ Tuple2_proj_1 =
+  x; Tuple2_proj_2 = y }, q))) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+  }, infix_lspl(q, r))))
+
+axiom function_overriding :
+  (forall s:'a set. forall t:'b set. forall f:('a, 'b) tuple2 set.
+  forall g:('a, 'b) tuple2 set. ((mem(f, infix_plmngt(s, t)) and mem(g,
+  infix_plmngt(s, t))) -> mem(infix_lspl(f, g), infix_plmngt(s, t))))
+
+axiom dom_overriding :
+  (forall f:('a, 'b) tuple2 set. forall g:('a, 'b) tuple2 set
+  [dom(infix_lspl(f, g))]. (dom(infix_lspl(f, g)) = union(dom(f), dom(g))))
+
+axiom apply_overriding_1 :
+  (forall s:'a set. forall t:'b set. forall f:('a, 'b) tuple2 set.
+  forall g:('a, 'b) tuple2 set. forall x:'a [mem(f, infix_plmngt(s, t)),
+  mem(g, infix_plmngt(s, t)), apply(infix_lspl(f, g), x)]. ((mem(f,
+  infix_plmngt(s, t)) and mem(g, infix_plmngt(s, t))) -> (mem(x, dom(g)) ->
+  (apply(infix_lspl(f, g), x) = apply(g, x)))))
+
+axiom apply_overriding_2 :
+  (forall s:'a set. forall t:'b set. forall f:('a, 'b) tuple2 set.
+  forall g:('a, 'b) tuple2 set. forall x:'a [mem(f, infix_plmngt(s, t)),
+  apply(infix_lspl(f, g), x)| mem(g, infix_plmngt(s, t)), apply(infix_lspl(f,
+  g), x)]. ((mem(f, infix_plmngt(s, t)) and mem(g, infix_plmngt(s, t))) ->
+  ((not mem(x, dom(g))) -> (mem(x, dom(f)) -> (apply(infix_lspl(f, g),
+  x) = apply(f, x))))))
+
+type uninterpreted_type
+
+type enum_t_AUTOMATON_STATE = E_empty_open | E_train_open
+  | E_train_primary_closing | E_train_secondary_wait
+  | E_train_secondary_closing | E_train_closed | E_empty_closed
+  | E_empty_opening | E_failure
+
+logic match_enum_t_AUTOMATON_STATE : enum_t_AUTOMATON_STATE, 'a, 'a, 'a, 'a,
+  'a, 'a, 'a, 'a, 'a -> 'a
+
+axiom match_enum_t_AUTOMATON_STATE_E_empty_open :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_empty_open, z, z1, z2, z3, z4, z5, z6, z7,
+  z8) = z))
+
+axiom match_enum_t_AUTOMATON_STATE_E_train_open :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_train_open, z, z1, z2, z3, z4, z5, z6, z7,
+  z8) = z1))
+
+axiom match_enum_t_AUTOMATON_STATE_E_train_primary_closing :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_train_primary_closing, z, z1, z2, z3, z4,
+  z5, z6, z7, z8) = z2))
+
+axiom match_enum_t_AUTOMATON_STATE_E_train_secondary_wait :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_train_secondary_wait, z, z1, z2, z3, z4,
+  z5, z6, z7, z8) = z3))
+
+axiom match_enum_t_AUTOMATON_STATE_E_train_secondary_closing :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_train_secondary_closing, z, z1, z2, z3, z4,
+  z5, z6, z7, z8) = z4))
+
+axiom match_enum_t_AUTOMATON_STATE_E_train_closed :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_train_closed, z, z1, z2, z3, z4, z5, z6,
+  z7, z8) = z5))
+
+axiom match_enum_t_AUTOMATON_STATE_E_empty_closed :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_empty_closed, z, z1, z2, z3, z4, z5, z6,
+  z7, z8) = z6))
+
+axiom match_enum_t_AUTOMATON_STATE_E_empty_opening :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_empty_opening, z, z1, z2, z3, z4, z5, z6,
+  z7, z8) = z7))
+
+axiom match_enum_t_AUTOMATON_STATE_E_failure :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a.
+  (match_enum_t_AUTOMATON_STATE(E_failure, z, z1, z2, z3, z4, z5, z6, z7,
+  z8) = z8))
+
+logic set_enum_t_AUTOMATON_STATE : enum_t_AUTOMATON_STATE set
+
+axiom set_enum_t_AUTOMATON_STATE_axiom :
+  (forall x:enum_t_AUTOMATON_STATE. mem(x, set_enum_t_AUTOMATON_STATE))
+
+type enum_t_BOOM_MOVEMENT_ORDER = E_go_up | E_go_down
+
+logic match_enum_t_BOOM_MOVEMENT_ORDER : enum_t_BOOM_MOVEMENT_ORDER, 'a,
+  'a -> 'a
+
+axiom match_enum_t_BOOM_MOVEMENT_ORDER_E_go_up :
+  (forall z:'a. forall z1:'a. (match_enum_t_BOOM_MOVEMENT_ORDER(E_go_up, z,
+  z1) = z))
+
+axiom match_enum_t_BOOM_MOVEMENT_ORDER_E_go_down :
+  (forall z:'a. forall z1:'a. (match_enum_t_BOOM_MOVEMENT_ORDER(E_go_down, z,
+  z1) = z1))
+
+logic set_enum_t_BOOM_MOVEMENT_ORDER : enum_t_BOOM_MOVEMENT_ORDER set
+
+axiom set_enum_t_BOOM_MOVEMENT_ORDER_axiom :
+  (forall x:enum_t_BOOM_MOVEMENT_ORDER. mem(x,
+  set_enum_t_BOOM_MOVEMENT_ORDER))
+
+type enum_t_BOOM_TYPE = E_primary_boom | E_secondary_boom
+
+logic match_enum_t_BOOM_TYPE : enum_t_BOOM_TYPE, 'a, 'a -> 'a
+
+axiom match_enum_t_BOOM_TYPE_E_primary_boom :
+  (forall z:'a. forall z1:'a. (match_enum_t_BOOM_TYPE(E_primary_boom, z,
+  z1) = z))
+
+axiom match_enum_t_BOOM_TYPE_E_secondary_boom :
+  (forall z:'a. forall z1:'a. (match_enum_t_BOOM_TYPE(E_secondary_boom, z,
+  z1) = z1))
+
+logic set_enum_t_BOOM_TYPE : enum_t_BOOM_TYPE set
+
+axiom set_enum_t_BOOM_TYPE_axiom :
+  (forall x:enum_t_BOOM_TYPE. mem(x, set_enum_t_BOOM_TYPE))
+
+type enum_t_DETECTOR = E_adc_detector | E_bdc_detector
+
+logic match_enum_t_DETECTOR : enum_t_DETECTOR, 'a, 'a -> 'a
+
+axiom match_enum_t_DETECTOR_E_adc_detector :
+  (forall z:'a. forall z1:'a. (match_enum_t_DETECTOR(E_adc_detector, z,
+  z1) = z))
+
+axiom match_enum_t_DETECTOR_E_bdc_detector :
+  (forall z:'a. forall z1:'a. (match_enum_t_DETECTOR(E_bdc_detector, z,
+  z1) = z1))
+
+logic set_enum_t_DETECTOR : enum_t_DETECTOR set
+
+axiom set_enum_t_DETECTOR_axiom :
+  (forall x:enum_t_DETECTOR. mem(x, set_enum_t_DETECTOR))
+
+type enum_t_GATE = E_inbound_lineside_gate | E_outbound_lineside_gate
+
+logic match_enum_t_GATE : enum_t_GATE, 'a, 'a -> 'a
+
+axiom match_enum_t_GATE_E_inbound_lineside_gate :
+  (forall z:'a. forall z1:'a. (match_enum_t_GATE(E_inbound_lineside_gate, z,
+  z1) = z))
+
+axiom match_enum_t_GATE_E_outbound_lineside_gate :
+  (forall z:'a. forall z1:'a. (match_enum_t_GATE(E_outbound_lineside_gate, z,
+  z1) = z1))
+
+logic set_enum_t_GATE : enum_t_GATE set
+
+axiom set_enum_t_GATE_axiom : (forall x:enum_t_GATE. mem(x, set_enum_t_GATE))
+
+type enum_t_LINE = E_inbound_line | E_outbound_line
+
+logic match_enum_t_LINE : enum_t_LINE, 'a, 'a -> 'a
+
+axiom match_enum_t_LINE_E_inbound_line :
+  (forall z:'a. forall z1:'a. (match_enum_t_LINE(E_inbound_line, z, z1) = z))
+
+axiom match_enum_t_LINE_E_outbound_line :
+  (forall z:'a. forall z1:'a. (match_enum_t_LINE(E_outbound_line, z,
+  z1) = z1))
+
+logic set_enum_t_LINE : enum_t_LINE set
+
+axiom set_enum_t_LINE_axiom : (forall x:enum_t_LINE. mem(x, set_enum_t_LINE))
+
+predicate f1(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((mem(v_maximum_train_length,
+  integer) and (0 <= v_maximum_train_length)) and
+  (v_maximum_train_length <= 2147483647)) and
+  (not (v_maximum_train_length = 0))) and mem(v_minimum_train_length,
+  integer)) and (0 <= v_minimum_train_length)) and
+  (v_minimum_train_length <= 2147483647)) and
+  (not (v_minimum_train_length = 0))) and (v_maximum_train_length = 400)) and
+  (v_minimum_train_length = 50)) and mem(v_maximum_train_speed, integer)) and
+  (0 <= v_maximum_train_speed)) and
+  (v_maximum_train_speed <= 2147483647)) and
+  (not (v_maximum_train_speed = 0))) and (v_maximum_train_speed = 28)) and
+  mem(v_number_of_booms, mk(1, 2))) and mem(v_adc_start_to_crossing_start,
+  integer)) and (0 <= v_adc_start_to_crossing_start)) and
+  (v_adc_start_to_crossing_start <= 2147483647)) and
+  (not (v_adc_start_to_crossing_start = 0))) and
+  mem(v_adc_end_to_crossing_start, integer)) and
+  (0 <= v_adc_end_to_crossing_start)) and
+  (v_adc_end_to_crossing_start <= 2147483647)) and
+  (not (v_adc_end_to_crossing_start = 0))) and
+  mem(v_bdc_start_to_crossing_start, integer)) and
+  (0 <= v_bdc_start_to_crossing_start)) and
+  (v_bdc_start_to_crossing_start <= 2147483647)) and
+  (not (v_bdc_start_to_crossing_start = 0))) and
+  mem(v_crossing_end_to_bdc_end, integer)) and
+  (0 <= v_crossing_end_to_bdc_end)) and
+  (v_crossing_end_to_bdc_end <= 2147483647)) and
+  (not (v_crossing_end_to_bdc_end = 0))) and
+  mem(v_crossing_start_to_crossing_end, integer)) and
+  (0 <= v_crossing_start_to_crossing_end)) and
+  (v_crossing_start_to_crossing_end <= 2147483647)) and
+  (not (v_crossing_start_to_crossing_end = 0))) and
+  (v_adc_start_to_crossing_start = 1000)) and
+  (v_adc_end_to_crossing_start = 950)) and
+  (v_bdc_start_to_crossing_start = 25)) and
+  (v_crossing_end_to_bdc_end = 15)) and
+  (v_crossing_start_to_crossing_end = 10)) and
+  (v_minimum_train_length <= (v_adc_start_to_crossing_start - v_adc_end_to_crossing_start))) and
+  (v_minimum_train_length <= ((v_bdc_start_to_crossing_start + v_crossing_start_to_crossing_end) + v_crossing_end_to_bdc_end))) and
+  (30 <= safe_comp_div(v_adc_start_to_crossing_start,v_maximum_train_speed))) and
+  (v_cycle_duration = 100)) and mem(v_closing_boom_timer__initial_time,
+  integer)) and (0 <= v_closing_boom_timer__initial_time)) and
+  (v_closing_boom_timer__initial_time <= 2147483647)) and
+  (not (v_closing_boom_timer__initial_time = 0))) and
+  mem(v_secondary_wait_timer__initial_time, integer)) and
+  (0 <= v_secondary_wait_timer__initial_time)) and
+  (v_secondary_wait_timer__initial_time <= 2147483647)) and
+  (not (v_secondary_wait_timer__initial_time = 0))) and
+  mem(v_opening_boom_timer__initial_time, integer)) and
+  (0 <= v_opening_boom_timer__initial_time)) and
+  (v_opening_boom_timer__initial_time <= 2147483647)) and
+  (not (v_opening_boom_timer__initial_time = 0))) and
+  mem(v_first_train_in_warning_timer__initial_time, integer)) and
+  (0 <= v_first_train_in_warning_timer__initial_time)) and
+  (v_first_train_in_warning_timer__initial_time <= 2147483647)) and
+  (not (v_first_train_in_warning_timer__initial_time = 0))) and
+  mem(v_last_train_in_warning_timer__initial_time, integer)) and
+  (0 <= v_last_train_in_warning_timer__initial_time)) and
+  (v_last_train_in_warning_timer__initial_time <= 2147483647)) and
+  (not (v_last_train_in_warning_timer__initial_time = 0))) and
+  (v_closing_boom_timer__initial_time = 8000)) and
+  (v_secondary_wait_timer__initial_time = 2000)) and
+  (v_opening_boom_timer__initial_time = 8000)) and
+  (v_first_train_in_warning_timer__initial_time = 10000)) and
+  (v_last_train_in_warning_timer__initial_time = 5000)) and
+  mem(v_bijection_trains, seq(v_TRAINS))) and
+  mem(inverse(v_bijection_trains), infix_plmngt(v_TRAINS, natural))) and
+  mem(v_bijection_trains, infix_plmngt(diff(natural, add(0,
+  (empty : int set))), v_TRAINS))) and infix_eqeq(ran(v_bijection_trains),
+  v_TRAINS)) and mem(v_max_number_of_trains, integer)) and
+  (0 <= v_max_number_of_trains)) and
+  (v_max_number_of_trains <= 2147483647)) and
+  (not (v_max_number_of_trains = 0))) and
+  (v_max_number_of_trains = size(v_bijection_trains))) and
+  ((safe_comp_div(((v_adc_start_to_crossing_start + v_crossing_start_to_crossing_end) + v_crossing_end_to_bdc_end),v_minimum_train_length) + 1) <= v_max_number_of_trains)) and
+  mem(v_TRAINS, finite_subsets(integer))) and (not infix_eqeq(v_TRAINS,
+  (empty : int set)))) and mem(v_allowed_transitions,
+  relation(set_enum_t_AUTOMATON_STATE, set_enum_t_AUTOMATON_STATE))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_empty_open,
+  (empty : enum_t_AUTOMATON_STATE set))), union(union(add(E_empty_open,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_train_open,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_train_open,
+  (empty : enum_t_AUTOMATON_STATE set))), union(union(add(E_train_open,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_train_primary_closing,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_train_primary_closing,
+  (empty : enum_t_AUTOMATON_STATE set))),
+  union(union(union(add(E_train_primary_closing,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_train_secondary_wait,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_train_closed,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_train_secondary_wait,
+  (empty : enum_t_AUTOMATON_STATE set))),
+  union(union(add(E_train_secondary_wait,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_train_secondary_closing,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_train_secondary_closing,
+  (empty : enum_t_AUTOMATON_STATE set))),
+  union(union(add(E_train_secondary_closing,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_train_closed,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_train_closed,
+  (empty : enum_t_AUTOMATON_STATE set))), union(union(add(E_train_closed,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_empty_closed,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_empty_closed,
+  (empty : enum_t_AUTOMATON_STATE set))),
+  union(union(union(add(E_empty_closed,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_empty_opening,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_train_closed,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_empty_opening,
+  (empty : enum_t_AUTOMATON_STATE set))),
+  union(union(union(add(E_empty_opening,
+  (empty : enum_t_AUTOMATON_STATE set)), add(E_empty_open,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_train_open,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))) and
+  infix_eqeq(image(v_allowed_transitions, add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))), add(E_failure,
+  (empty : enum_t_AUTOMATON_STATE set))))
+
+predicate f2(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((((((((((((((((mem(v_inbound_trains_in_warning_1,
+  power1(v_TRAINS)) and mem(v_outbound_trains_in_warning_1,
+  power1(v_TRAINS))) and mem(v_closing_boom_timer__remaining_time_1,
+  integer)) and (0 <= v_closing_boom_timer__remaining_time_1)) and
+  (v_closing_boom_timer__remaining_time_1 <= 2147483647)) and
+  mem(v_secondary_wait_timer__remaining_time_1, integer)) and
+  (0 <= v_secondary_wait_timer__remaining_time_1)) and
+  (v_secondary_wait_timer__remaining_time_1 <= 2147483647)) and
+  mem(v_opening_boom_timer__remaining_time_1, integer)) and
+  (0 <= v_opening_boom_timer__remaining_time_1)) and
+  (v_opening_boom_timer__remaining_time_1 <= 2147483647)) and
+  mem(v_first_train_in_warning_timer__remaining_time_1, integer)) and
+  (0 <= v_first_train_in_warning_timer__remaining_time_1)) and
+  (v_first_train_in_warning_timer__remaining_time_1 <= 2147483647)) and
+  mem(v_last_train_in_warning_timer__remaining_time_1, integer)) and
+  (0 <= v_last_train_in_warning_timer__remaining_time_1)) and
+  (v_last_train_in_warning_timer__remaining_time_1 <= 2147483647)) and
+  ((not (v_status_1 = E_train_open)) ->
+  (v_first_train_in_warning_timer__active_1 = false))) and
+  ((v_status_1 = E_train_open) ->
+  (v_first_train_in_warning_timer__active_1 = true))) and
+  (((not (v_status_1 = E_train_primary_closing)) and
+  (not (v_status_1 = E_train_secondary_closing))) ->
+  (v_closing_boom_timer__active_1 = false))) and
+  (((v_status_1 = E_train_primary_closing) or
+  (v_status_1 = E_train_secondary_closing)) ->
+  (v_closing_boom_timer__active_1 = true))) and
+  ((not (v_status_1 = E_train_secondary_wait)) ->
+  (v_secondary_wait_timer__active_1 = false))) and
+  ((v_status_1 = E_train_secondary_wait) ->
+  (v_secondary_wait_timer__active_1 = true))) and
+  ((not (v_status_1 = E_empty_closed)) ->
+  (v_last_train_in_warning_timer__active_1 = false))) and
+  ((v_status_1 = E_empty_closed) ->
+  (v_last_train_in_warning_timer__active_1 = true))) and
+  ((not (v_status_1 = E_empty_opening)) ->
+  (v_opening_boom_timer__active_1 = false))) and
+  ((v_status_1 = E_empty_opening) ->
+  (v_opening_boom_timer__active_1 = true))) and
+  (((v_status_1 = E_train_secondary_wait) or
+  (v_status_1 = E_train_secondary_closing)) -> (v_number_of_booms = 2))) and
+  ((v_status_1 = E_train_secondary_wait) ->
+  (v_primary_boom_closed_detector_1 = true))) and
+  ((v_status_1 = E_train_secondary_closing) ->
+  (v_primary_boom_closed_detector_1 = true)))
+
+predicate f3(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((((((((((((((((((((((((mem(v_inbound_trains_in_warning_1,
+  power1(v_TRAINS)) and mem(v_outbound_trains_in_warning_1,
+  power1(v_TRAINS))) and (((not (v_status_1 = E_empty_open)) and
+  (not (v_status_1 = E_empty_opening))) -> (v_lamps_bells_on_1 = true))) and
+  ((v_status_1 = E_empty_open) -> (v_lamps_bells_on_1 = false))) and
+  ((v_status_1 = E_empty_opening) -> (v_lamps_bells_on_1 = false))) and
+  ((v_inbound_indicators_on_1 = true) -> (v_lamps_bells_on_1 = true))) and
+  ((v_outbound_indicators_on_1 = true) -> (v_lamps_bells_on_1 = true))) and
+  ((v_lamps_bells_on_1 = false) -> ((v_inbound_indicators_on_1 = false) and
+  (v_outbound_indicators_on_1 = false)))) and
+  ((v_status_1 = E_empty_closed) -> ((v_inbound_indicators_on_1 = false) and
+  (v_outbound_indicators_on_1 = false)))) and
+  ((v_status_1 = E_empty_opening) -> ((v_inbound_indicators_on_1 = false) and
+  (v_outbound_indicators_on_1 = false)))) and ((v_status_1 = E_empty_open) ->
+  ((v_inbound_indicators_on_1 = false) and
+  (v_outbound_indicators_on_1 = false)))) and ((v_status_1 = E_failure) ->
+  ((v_lamps_bells_on_1 = true) and (v_boom_safety_close_1 = true)))) and
+  ((not (v_status_1 = E_failure)) -> (v_boom_safety_close_1 = false))) and
+  ((v_inbound_safety_mode_1 = true) -> (v_safety_mode = true))) and
+  ((v_outbound_safety_mode_1 = true) -> (v_safety_mode = true))) and
+  (((v_inbound_safety_mode_1 = false) and
+  (v_outbound_safety_mode_1 = false)) -> (v_safety_mode = false))) and
+  ((v_safety_mode = false) -> ((v_inbound_safety_mode_1 = false) and
+  (v_outbound_safety_mode_1 = false)))) and
+  (v_initialised = v_initialised_1)) and (v_status = v_status_1)) and
+  (v_lamps_bells_on = v_lamps_bells_on_1)) and
+  (v_inbound_indicators_on = v_inbound_indicators_on_1)) and
+  (v_outbound_indicators_on = v_outbound_indicators_on_1)) and
+  (v_boom_safety_close = v_boom_safety_close_1)) and
+  infix_eqeq(v_inbound_trains_in_warning, v_inbound_trains_in_warning_1)) and
+  infix_eqeq(v_outbound_trains_in_warning, v_outbound_trains_in_warning_1))
+
+predicate f4(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (v_initialised_1 = true)
+
+predicate f5(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_open))) and (v_status_1 = E_empty_open)) and
+  (not (infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set)) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set)))))
+
+predicate f7(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((not infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set))) or
+  (not infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set))))
+
+predicate f8(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (v_status_1 = E_train_open)) and
+  (not (1 <= v_first_train_in_warning_timer__remaining_time_1)))
+
+predicate f11(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (v_status_1 = E_train_primary_closing)) and
+  (1 <= v_closing_boom_timer__remaining_time_1)) and
+  (v_primary_boom_closed_detector_1 = true)) and (v_number_of_booms = 2))
+
+predicate f13(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (v_status_1 = E_train_primary_closing)) and
+  (1 <= v_closing_boom_timer__remaining_time_1)) and
+  (v_primary_boom_closed_detector_1 = true)) and
+  (not (v_number_of_booms = 2)))
+
+predicate f15(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (v_status_1 = E_train_primary_closing)) and
+  (1 <= v_closing_boom_timer__remaining_time_1)) and
+  (not (v_primary_boom_closed_detector_1 = true)))
+
+predicate f17(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (v_status_1 = E_train_primary_closing)) and
+  (not (1 <= v_closing_boom_timer__remaining_time_1)))
+
+predicate f19(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (v_status_1 = E_train_secondary_wait)) and
+  (not (1 <= v_secondary_wait_timer__remaining_time_1)))
+
+predicate f21(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (v_status_1 = E_train_secondary_closing)) and
+  (1 <= v_closing_boom_timer__remaining_time_1))
+
+predicate f23(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (v_status_1 = E_train_secondary_closing)) and
+  (1 <= v_closing_boom_timer__remaining_time_1)) and
+  (v_secondary_boom_closed_detector_1 = true))
+
+predicate f24(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (v_status_1 = E_train_secondary_closing)) and
+  (1 <= v_closing_boom_timer__remaining_time_1)) and
+  (not (v_secondary_boom_closed_detector_1 = true)))
+
+predicate f25(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (v_status_1 = E_train_secondary_closing)) and
+  (not (1 <= v_closing_boom_timer__remaining_time_1)))
+
+predicate f26(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and (v_status_1 = E_train_closed)) and
+  (not infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set))))
+
+predicate f27(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and (v_status_1 = E_train_closed)) and
+  (not infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set))))
+
+predicate f28(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (v_status_1 = E_empty_closed)) and
+  infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set))) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set))) and
+  (not (1 <= v_last_train_in_warning_timer__remaining_time_1)))
+
+predicate f30(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (v_status_1 = E_empty_closed)) and
+  (not (infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set)) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set)))))
+
+predicate f31(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_failure))) and (v_status_1 = E_empty_opening)) and
+  infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set))) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set))) and
+  (not (1 <= v_opening_boom_timer__remaining_time_1)))
+
+predicate f33(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_empty_open))) and
+  (not (v_status_1 = E_train_open))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_failure))) and (v_status_1 = E_empty_opening)) and
+  (not (infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set)) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set)))))
+
+predicate f34(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((((((((((((v_initialised_1 = true) and
+  ((v_inbound_safety_mode_1 = true) or
+  (v_outbound_safety_mode_1 = true))) and mem(0, integer)) and
+  (not (E_failure = E_train_open))) and
+  (not (E_failure = E_train_primary_closing))) and
+  (not (E_failure = E_train_secondary_closing))) and
+  (not (E_failure = E_train_secondary_wait))) and
+  (not (E_failure = E_empty_closed))) and
+  (not (E_failure = E_empty_opening))) and
+  (((E_failure = E_train_secondary_wait) or
+  (E_failure = E_train_secondary_closing)) -> (v_number_of_booms = 2))) and
+  ((E_failure = E_train_secondary_wait) ->
+  (v_primary_boom_closed_detector_1 = true))) and
+  ((E_failure = E_train_secondary_closing) ->
+  (v_primary_boom_closed_detector_1 = true)))
+
+predicate f36(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) = mem(E_failure,
+  image(v_allowed_transitions, add(v_status_1,
+  (empty : enum_t_AUTOMATON_STATE set))))
+
+predicate f37(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((v_initialised_1 = true) and
+  ((v_inbound_safety_mode_1 = true) or
+  (v_outbound_safety_mode_1 = true))) and mem(0, integer)) and
+  (not (E_failure = E_train_open))) and
+  (not (E_failure = E_train_primary_closing))) and
+  (not (E_failure = E_train_secondary_closing))) and
+  (not (E_failure = E_train_secondary_wait))) and
+  (not (E_failure = E_empty_closed))) and
+  (not (E_failure = E_empty_opening))) and
+  (((E_failure = E_train_secondary_wait) or
+  (E_failure = E_train_secondary_closing)) -> (v_number_of_booms = 2))) and
+  ((E_failure = E_train_secondary_wait) ->
+  (v_primary_boom_closed_detector_1 = true))) and
+  ((E_failure = E_train_secondary_closing) ->
+  (v_primary_boom_closed_detector_1 = true))) and (E_failure = E_empty_open))
+
+predicate f39(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  ((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_open))) and
+  infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set))) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set))) and
+  (v_status_1 = E_empty_open))
+
+predicate f41(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) = mem(v_status_1,
+  image(v_allowed_transitions, add(v_status_1,
+  (empty : enum_t_AUTOMATON_STATE set))))
+
+predicate f42(v_status_1: enum_t_AUTOMATON_STATE,
+  v_status: enum_t_AUTOMATON_STATE,
+  v_secondary_wait_timer__remaining_time_1: int,
+  v_secondary_wait_timer__remaining_time: int,
+  v_secondary_wait_timer__initial_time: int,
+  v_secondary_wait_timer__active_1: bool,
+  v_secondary_wait_timer__active: bool,
+  v_secondary_boom_closed_detector_1: bool,
+  v_secondary_boom_closed_detector: bool, v_safety_mode_3: bool,
+  v_safety_mode: bool, v_primary_boom_closed_detector_1: bool,
+  v_primary_boom_closed_detector: bool,
+  v_outbound_trains_in_warning_2: int set,
+  v_outbound_trains_in_warning_1: int set,
+  v_outbound_trains_in_warning: int set, v_outbound_safety_mode_2: bool,
+  v_outbound_safety_mode_1: bool, v_outbound_safety_mode: bool,
+  v_outbound_indicators_on_2: bool, v_outbound_indicators_on_1: bool,
+  v_outbound_indicators_on: bool,
+  v_opening_boom_timer__remaining_time_1: int,
+  v_opening_boom_timer__remaining_time: int,
+  v_opening_boom_timer__initial_time: int,
+  v_opening_boom_timer__active_1: bool, v_opening_boom_timer__active: bool,
+  v_number_of_booms: int, v_minimum_train_length: int,
+  v_maximum_train_speed: int, v_maximum_train_length: int,
+  v_max_number_of_trains: int,
+  v_last_train_in_warning_timer__remaining_time_1: int,
+  v_last_train_in_warning_timer__remaining_time: int,
+  v_last_train_in_warning_timer__initial_time: int,
+  v_last_train_in_warning_timer__active_1: bool,
+  v_last_train_in_warning_timer__active: bool, v_lamps_bells_on_1: bool,
+  v_lamps_bells_on: bool, v_initialised_1: bool, v_initialised: bool,
+  v_inbound_trains_in_warning_2: int set,
+  v_inbound_trains_in_warning_1: int set,
+  v_inbound_trains_in_warning: int set, v_inbound_safety_mode_2: bool,
+  v_inbound_safety_mode_1: bool, v_inbound_safety_mode: bool,
+  v_inbound_indicators_on_2: bool, v_inbound_indicators_on_1: bool,
+  v_inbound_indicators_on: bool,
+  v_first_train_in_warning_timer__remaining_time_1: int,
+  v_first_train_in_warning_timer__remaining_time: int,
+  v_first_train_in_warning_timer__initial_time: int,
+  v_first_train_in_warning_timer__active_1: bool,
+  v_first_train_in_warning_timer__active: bool, v_cycle_duration: int,
+  v_crossing_start_to_crossing_end: int, v_crossing_end_to_bdc_end: int,
+  v_closing_boom_timer__remaining_time_1: int,
+  v_closing_boom_timer__remaining_time: int,
+  v_closing_boom_timer__initial_time: int,
+  v_closing_boom_timer__active_1: bool, v_closing_boom_timer__active: bool,
+  v_boom_safety_close_1: bool, v_boom_safety_close: bool,
+  v_boom_open_detector_1: bool, v_boom_open_detector: bool,
+  v_bijection_trains: (int, int) tuple2 set,
+  v_bdc_start_to_crossing_start: int,
+  v_allowed_transitions: (enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set, v_adc_start_to_crossing_start: int,
+  v_adc_end_to_crossing_start: int, v_TRAINS: int set) =
+  (((((((((((((((v_initialised_1 = true) and
+  (not (v_inbound_safety_mode_1 = true))) and
+  (not (v_outbound_safety_mode_1 = true))) and
+  (not (v_status_1 = E_failure))) and
+  (not (v_status_1 = E_empty_opening))) and
+  (not (v_status_1 = E_empty_closed))) and
+  (not (v_status_1 = E_train_closed))) and
+  (not (v_status_1 = E_train_secondary_closing))) and
+  (not (v_status_1 = E_train_secondary_wait))) and
+  (not (v_status_1 = E_train_primary_closing))) and
+  (not (v_status_1 = E_train_open))) and
+  infix_eqeq(v_inbound_trains_in_warning_1, (empty : int set))) and
+  infix_eqeq(v_outbound_trains_in_warning_1, (empty : int set))) and
+  (v_status_1 = E_empty_open)) and (v_safety_mode = true))
+
+goal advance_automaton_25 :
+  (forall v_status_1:enum_t_AUTOMATON_STATE.
+  forall v_status:enum_t_AUTOMATON_STATE.
+  forall v_secondary_wait_timer__remaining_time_1:int.
+  forall v_secondary_wait_timer__remaining_time:int.
+  forall v_secondary_wait_timer__initial_time:int.
+  forall v_secondary_wait_timer__active_1:bool.
+  forall v_secondary_wait_timer__active:bool.
+  forall v_secondary_boom_closed_detector_1:bool.
+  forall v_secondary_boom_closed_detector:bool. forall v_safety_mode_3:bool.
+  forall v_safety_mode:bool. forall v_primary_boom_closed_detector_1:bool.
+  forall v_primary_boom_closed_detector:bool.
+  forall v_outbound_trains_in_warning_2:int set.
+  forall v_outbound_trains_in_warning_1:int set.
+  forall v_outbound_trains_in_warning:int set.
+  forall v_outbound_safety_mode_2:bool. forall v_outbound_safety_mode_1:bool.
+  forall v_outbound_safety_mode:bool. forall v_outbound_indicators_on_2:bool.
+  forall v_outbound_indicators_on_1:bool.
+  forall v_outbound_indicators_on:bool.
+  forall v_opening_boom_timer__remaining_time_1:int.
+  forall v_opening_boom_timer__remaining_time:int.
+  forall v_opening_boom_timer__initial_time:int.
+  forall v_opening_boom_timer__active_1:bool.
+  forall v_opening_boom_timer__active:bool. forall v_number_of_booms:int.
+  forall v_minimum_train_length:int. forall v_maximum_train_speed:int.
+  forall v_maximum_train_length:int. forall v_max_number_of_trains:int.
+  forall v_last_train_in_warning_timer__remaining_time_1:int.
+  forall v_last_train_in_warning_timer__remaining_time:int.
+  forall v_last_train_in_warning_timer__initial_time:int.
+  forall v_last_train_in_warning_timer__active_1:bool.
+  forall v_last_train_in_warning_timer__active:bool.
+  forall v_lamps_bells_on_1:bool. forall v_lamps_bells_on:bool.
+  forall v_initialised_1:bool. forall v_initialised:bool.
+  forall v_inbound_trains_in_warning_2:int set.
+  forall v_inbound_trains_in_warning_1:int set.
+  forall v_inbound_trains_in_warning:int set.
+  forall v_inbound_safety_mode_2:bool. forall v_inbound_safety_mode_1:bool.
+  forall v_inbound_safety_mode:bool. forall v_inbound_indicators_on_2:bool.
+  forall v_inbound_indicators_on_1:bool. forall v_inbound_indicators_on:bool.
+  forall v_first_train_in_warning_timer__remaining_time_1:int.
+  forall v_first_train_in_warning_timer__remaining_time:int.
+  forall v_first_train_in_warning_timer__initial_time:int.
+  forall v_first_train_in_warning_timer__active_1:bool.
+  forall v_first_train_in_warning_timer__active:bool.
+  forall v_cycle_duration:int. forall v_crossing_start_to_crossing_end:int.
+  forall v_crossing_end_to_bdc_end:int.
+  forall v_closing_boom_timer__remaining_time_1:int.
+  forall v_closing_boom_timer__remaining_time:int.
+  forall v_closing_boom_timer__initial_time:int.
+  forall v_closing_boom_timer__active_1:bool.
+  forall v_closing_boom_timer__active:bool.
+  forall v_boom_safety_close_1:bool. forall v_boom_safety_close:bool.
+  forall v_boom_open_detector_1:bool. forall v_boom_open_detector:bool.
+  forall v_bijection_trains:(int, int) tuple2 set.
+  forall v_bdc_start_to_crossing_start:int.
+  forall v_allowed_transitions:(enum_t_AUTOMATON_STATE,
+  enum_t_AUTOMATON_STATE) tuple2 set.
+  forall v_adc_start_to_crossing_start:int.
+  forall v_adc_end_to_crossing_start:int. forall v_TRAINS:int set.
+  ((f1(v_status_1, v_status, v_secondary_wait_timer__remaining_time_1,
+  v_secondary_wait_timer__remaining_time,
+  v_secondary_wait_timer__initial_time, v_secondary_wait_timer__active_1,
+  v_secondary_wait_timer__active, v_secondary_boom_closed_detector_1,
+  v_secondary_boom_closed_detector, v_safety_mode_3, v_safety_mode,
+  v_primary_boom_closed_detector_1, v_primary_boom_closed_detector,
+  v_outbound_trains_in_warning_2, v_outbound_trains_in_warning_1,
+  v_outbound_trains_in_warning, v_outbound_safety_mode_2,
+  v_outbound_safety_mode_1, v_outbound_safety_mode,
+  v_outbound_indicators_on_2, v_outbound_indicators_on_1,
+  v_outbound_indicators_on, v_opening_boom_timer__remaining_time_1,
+  v_opening_boom_timer__remaining_time, v_opening_boom_timer__initial_time,
+  v_opening_boom_timer__active_1, v_opening_boom_timer__active,
+  v_number_of_booms, v_minimum_train_length, v_maximum_train_speed,
+  v_maximum_train_length, v_max_number_of_trains,
+  v_last_train_in_warning_timer__remaining_time_1,
+  v_last_train_in_warning_timer__remaining_time,
+  v_last_train_in_warning_timer__initial_time,
+  v_last_train_in_warning_timer__active_1,
+  v_last_train_in_warning_timer__active, v_lamps_bells_on_1,
+  v_lamps_bells_on, v_initialised_1, v_initialised,
+  v_inbound_trains_in_warning_2, v_inbound_trains_in_warning_1,
+  v_inbound_trains_in_warning, v_inbound_safety_mode_2,
+  v_inbound_safety_mode_1, v_inbound_safety_mode, v_inbound_indicators_on_2,
+  v_inbound_indicators_on_1, v_inbound_indicators_on,
+  v_first_train_in_warning_timer__remaining_time_1,
+  v_first_train_in_warning_timer__remaining_time,
+  v_first_train_in_warning_timer__initial_time,
+  v_first_train_in_warning_timer__active_1,
+  v_first_train_in_warning_timer__active, v_cycle_duration,
+  v_crossing_start_to_crossing_end, v_crossing_end_to_bdc_end,
+  v_closing_boom_timer__remaining_time_1,
+  v_closing_boom_timer__remaining_time, v_closing_boom_timer__initial_time,
+  v_closing_boom_timer__active_1, v_closing_boom_timer__active,
+  v_boom_safety_close_1, v_boom_safety_close, v_boom_open_detector_1,
+  v_boom_open_detector, v_bijection_trains, v_bdc_start_to_crossing_start,
+  v_allowed_transitions, v_adc_start_to_crossing_start,
+  v_adc_end_to_crossing_start, v_TRAINS) and (f2(v_status_1, v_status,
+  v_secondary_wait_timer__remaining_time_1,
+  v_secondary_wait_timer__remaining_time,
+  v_secondary_wait_timer__initial_time, v_secondary_wait_timer__active_1,
+  v_secondary_wait_timer__active, v_secondary_boom_closed_detector_1,
+  v_secondary_boom_closed_detector, v_safety_mode_3, v_safety_mode,
+  v_primary_boom_closed_detector_1, v_primary_boom_closed_detector,
+  v_outbound_trains_in_warning_2, v_outbound_trains_in_warning_1,
+  v_outbound_trains_in_warning, v_outbound_safety_mode_2,
+  v_outbound_safety_mode_1, v_outbound_safety_mode,
+  v_outbound_indicators_on_2, v_outbound_indicators_on_1,
+  v_outbound_indicators_on, v_opening_boom_timer__remaining_time_1,
+  v_opening_boom_timer__remaining_time, v_opening_boom_timer__initial_time,
+  v_opening_boom_timer__active_1, v_opening_boom_timer__active,
+  v_number_of_booms, v_minimum_train_length, v_maximum_train_speed,
+  v_maximum_train_length, v_max_number_of_trains,
+  v_last_train_in_warning_timer__remaining_time_1,
+  v_last_train_in_warning_timer__remaining_time,
+  v_last_train_in_warning_timer__initial_time,
+  v_last_train_in_warning_timer__active_1,
+  v_last_train_in_warning_timer__active, v_lamps_bells_on_1,
+  v_lamps_bells_on, v_initialised_1, v_initialised,
+  v_inbound_trains_in_warning_2, v_inbound_trains_in_warning_1,
+  v_inbound_trains_in_warning, v_inbound_safety_mode_2,
+  v_inbound_safety_mode_1, v_inbound_safety_mode, v_inbound_indicators_on_2,
+  v_inbound_indicators_on_1, v_inbound_indicators_on,
+  v_first_train_in_warning_timer__remaining_time_1,
+  v_first_train_in_warning_timer__remaining_time,
+  v_first_train_in_warning_timer__initial_time,
+  v_first_train_in_warning_timer__active_1,
+  v_first_train_in_warning_timer__active, v_cycle_duration,
+  v_crossing_start_to_crossing_end, v_crossing_end_to_bdc_end,
+  v_closing_boom_timer__remaining_time_1,
+  v_closing_boom_timer__remaining_time, v_closing_boom_timer__initial_time,
+  v_closing_boom_timer__active_1, v_closing_boom_timer__active,
+  v_boom_safety_close_1, v_boom_safety_close, v_boom_open_detector_1,
+  v_boom_open_detector, v_bijection_trains, v_bdc_start_to_crossing_start,
+  v_allowed_transitions, v_adc_start_to_crossing_start,
+  v_adc_end_to_crossing_start, v_TRAINS) and (f3(v_status_1, v_status,
+  v_secondary_wait_timer__remaining_time_1,
+  v_secondary_wait_timer__remaining_time,
+  v_secondary_wait_timer__initial_time, v_secondary_wait_timer__active_1,
+  v_secondary_wait_timer__active, v_secondary_boom_closed_detector_1,
+  v_secondary_boom_closed_detector, v_safety_mode_3, v_safety_mode,
+  v_primary_boom_closed_detector_1, v_primary_boom_closed_detector,
+  v_outbound_trains_in_warning_2, v_outbound_trains_in_warning_1,
+  v_outbound_trains_in_warning, v_outbound_safety_mode_2,
+  v_outbound_safety_mode_1, v_outbound_safety_mode,
+  v_outbound_indicators_on_2, v_outbound_indicators_on_1,
+  v_outbound_indicators_on, v_opening_boom_timer__remaining_time_1,
+  v_opening_boom_timer__remaining_time, v_opening_boom_timer__initial_time,
+  v_opening_boom_timer__active_1, v_opening_boom_timer__active,
+  v_number_of_booms, v_minimum_train_length, v_maximum_train_speed,
+  v_maximum_train_length, v_max_number_of_trains,
+  v_last_train_in_warning_timer__remaining_time_1,
+  v_last_train_in_warning_timer__remaining_time,
+  v_last_train_in_warning_timer__initial_time,
+  v_last_train_in_warning_timer__active_1,
+  v_last_train_in_warning_timer__active, v_lamps_bells_on_1,
+  v_lamps_bells_on, v_initialised_1, v_initialised,
+  v_inbound_trains_in_warning_2, v_inbound_trains_in_warning_1,
+  v_inbound_trains_in_warning, v_inbound_safety_mode_2,
+  v_inbound_safety_mode_1, v_inbound_safety_mode, v_inbound_indicators_on_2,
+  v_inbound_indicators_on_1, v_inbound_indicators_on,
+  v_first_train_in_warning_timer__remaining_time_1,
+  v_first_train_in_warning_timer__remaining_time,
+  v_first_train_in_warning_timer__initial_time,
+  v_first_train_in_warning_timer__active_1,
+  v_first_train_in_warning_timer__active, v_cycle_duration,
+  v_crossing_start_to_crossing_end, v_crossing_end_to_bdc_end,
+  v_closing_boom_timer__remaining_time_1,
+  v_closing_boom_timer__remaining_time, v_closing_boom_timer__initial_time,
+  v_closing_boom_timer__active_1, v_closing_boom_timer__active,
+  v_boom_safety_close_1, v_boom_safety_close, v_boom_open_detector_1,
+  v_boom_open_detector, v_bijection_trains, v_bdc_start_to_crossing_start,
+  v_allowed_transitions, v_adc_start_to_crossing_start,
+  v_adc_end_to_crossing_start, v_TRAINS) and (f4(v_status_1, v_status,
+  v_secondary_wait_timer__remaining_time_1,
+  v_secondary_wait_timer__remaining_time,
+  v_secondary_wait_timer__initial_time, v_secondary_wait_timer__active_1,
+  v_secondary_wait_timer__active, v_secondary_boom_closed_detector_1,
+  v_secondary_boom_closed_detector, v_safety_mode_3, v_safety_mode,
+  v_primary_boom_closed_detector_1, v_primary_boom_closed_detector,
+  v_outbound_trains_in_warning_2, v_outbound_trains_in_warning_1,
+  v_outbound_trains_in_warning, v_outbound_safety_mode_2,
+  v_outbound_safety_mode_1, v_outbound_safety_mode,
+  v_outbound_indicators_on_2, v_outbound_indicators_on_1,
+  v_outbound_indicators_on, v_opening_boom_timer__remaining_time_1,
+  v_opening_boom_timer__remaining_time, v_opening_boom_timer__initial_time,
+  v_opening_boom_timer__active_1, v_opening_boom_timer__active,
+  v_number_of_booms, v_minimum_train_length, v_maximum_train_speed,
+  v_maximum_train_length, v_max_number_of_trains,
+  v_last_train_in_warning_timer__remaining_time_1,
+  v_last_train_in_warning_timer__remaining_time,
+  v_last_train_in_warning_timer__initial_time,
+  v_last_train_in_warning_timer__active_1,
+  v_last_train_in_warning_timer__active, v_lamps_bells_on_1,
+  v_lamps_bells_on, v_initialised_1, v_initialised,
+  v_inbound_trains_in_warning_2, v_inbound_trains_in_warning_1,
+  v_inbound_trains_in_warning, v_inbound_safety_mode_2,
+  v_inbound_safety_mode_1, v_inbound_safety_mode, v_inbound_indicators_on_2,
+  v_inbound_indicators_on_1, v_inbound_indicators_on,
+  v_first_train_in_warning_timer__remaining_time_1,
+  v_first_train_in_warning_timer__remaining_time,
+  v_first_train_in_warning_timer__initial_time,
+  v_first_train_in_warning_timer__active_1,
+  v_first_train_in_warning_timer__active, v_cycle_duration,
+  v_crossing_start_to_crossing_end, v_crossing_end_to_bdc_end,
+  v_closing_boom_timer__remaining_time_1,
+  v_closing_boom_timer__remaining_time, v_closing_boom_timer__initial_time,
+  v_closing_boom_timer__active_1, v_closing_boom_timer__active,
+  v_boom_safety_close_1, v_boom_safety_close, v_boom_open_detector_1,
+  v_boom_open_detector, v_bijection_trains, v_bdc_start_to_crossing_start,
+  v_allowed_transitions, v_adc_start_to_crossing_start,
+  v_adc_end_to_crossing_start, v_TRAINS) and f34(v_status_1, v_status,
+  v_secondary_wait_timer__remaining_time_1,
+  v_secondary_wait_timer__remaining_time,
+  v_secondary_wait_timer__initial_time, v_secondary_wait_timer__active_1,
+  v_secondary_wait_timer__active, v_secondary_boom_closed_detector_1,
+  v_secondary_boom_closed_detector, v_safety_mode_3, v_safety_mode,
+  v_primary_boom_closed_detector_1, v_primary_boom_closed_detector,
+  v_outbound_trains_in_warning_2, v_outbound_trains_in_warning_1,
+  v_outbound_trains_in_warning, v_outbound_safety_mode_2,
+  v_outbound_safety_mode_1, v_outbound_safety_mode,
+  v_outbound_indicators_on_2, v_outbound_indicators_on_1,
+  v_outbound_indicators_on, v_opening_boom_timer__remaining_time_1,
+  v_opening_boom_timer__remaining_time, v_opening_boom_timer__initial_time,
+  v_opening_boom_timer__active_1, v_opening_boom_timer__active,
+  v_number_of_booms, v_minimum_train_length, v_maximum_train_speed,
+  v_maximum_train_length, v_max_number_of_trains,
+  v_last_train_in_warning_timer__remaining_time_1,
+  v_last_train_in_warning_timer__remaining_time,
+  v_last_train_in_warning_timer__initial_time,
+  v_last_train_in_warning_timer__active_1,
+  v_last_train_in_warning_timer__active, v_lamps_bells_on_1,
+  v_lamps_bells_on, v_initialised_1, v_initialised,
+  v_inbound_trains_in_warning_2, v_inbound_trains_in_warning_1,
+  v_inbound_trains_in_warning, v_inbound_safety_mode_2,
+  v_inbound_safety_mode_1, v_inbound_safety_mode, v_inbound_indicators_on_2,
+  v_inbound_indicators_on_1, v_inbound_indicators_on,
+  v_first_train_in_warning_timer__remaining_time_1,
+  v_first_train_in_warning_timer__remaining_time,
+  v_first_train_in_warning_timer__initial_time,
+  v_first_train_in_warning_timer__active_1,
+  v_first_train_in_warning_timer__active, v_cycle_duration,
+  v_crossing_start_to_crossing_end, v_crossing_end_to_bdc_end,
+  v_closing_boom_timer__remaining_time_1,
+  v_closing_boom_timer__remaining_time, v_closing_boom_timer__initial_time,
+  v_closing_boom_timer__active_1, v_closing_boom_timer__active,
+  v_boom_safety_close_1, v_boom_safety_close, v_boom_open_detector_1,
+  v_boom_open_detector, v_bijection_trains, v_bdc_start_to_crossing_start,
+  v_allowed_transitions, v_adc_start_to_crossing_start,
+  v_adc_end_to_crossing_start, v_TRAINS))))) -> f36(v_status_1, v_status,
+  v_secondary_wait_timer__remaining_time_1,
+  v_secondary_wait_timer__remaining_time,
+  v_secondary_wait_timer__initial_time, v_secondary_wait_timer__active_1,
+  v_secondary_wait_timer__active, v_secondary_boom_closed_detector_1,
+  v_secondary_boom_closed_detector, v_safety_mode_3, v_safety_mode,
+  v_primary_boom_closed_detector_1, v_primary_boom_closed_detector,
+  v_outbound_trains_in_warning_2, v_outbound_trains_in_warning_1,
+  v_outbound_trains_in_warning, v_outbound_safety_mode_2,
+  v_outbound_safety_mode_1, v_outbound_safety_mode,
+  v_outbound_indicators_on_2, v_outbound_indicators_on_1,
+  v_outbound_indicators_on, v_opening_boom_timer__remaining_time_1,
+  v_opening_boom_timer__remaining_time, v_opening_boom_timer__initial_time,
+  v_opening_boom_timer__active_1, v_opening_boom_timer__active,
+  v_number_of_booms, v_minimum_train_length, v_maximum_train_speed,
+  v_maximum_train_length, v_max_number_of_trains,
+  v_last_train_in_warning_timer__remaining_time_1,
+  v_last_train_in_warning_timer__remaining_time,
+  v_last_train_in_warning_timer__initial_time,
+  v_last_train_in_warning_timer__active_1,
+  v_last_train_in_warning_timer__active, v_lamps_bells_on_1,
+  v_lamps_bells_on, v_initialised_1, v_initialised,
+  v_inbound_trains_in_warning_2, v_inbound_trains_in_warning_1,
+  v_inbound_trains_in_warning, v_inbound_safety_mode_2,
+  v_inbound_safety_mode_1, v_inbound_safety_mode, v_inbound_indicators_on_2,
+  v_inbound_indicators_on_1, v_inbound_indicators_on,
+  v_first_train_in_warning_timer__remaining_time_1,
+  v_first_train_in_warning_timer__remaining_time,
+  v_first_train_in_warning_timer__initial_time,
+  v_first_train_in_warning_timer__active_1,
+  v_first_train_in_warning_timer__active, v_cycle_duration,
+  v_crossing_start_to_crossing_end, v_crossing_end_to_bdc_end,
+  v_closing_boom_timer__remaining_time_1,
+  v_closing_boom_timer__remaining_time, v_closing_boom_timer__initial_time,
+  v_closing_boom_timer__active_1, v_closing_boom_timer__active,
+  v_boom_safety_close_1, v_boom_safety_close, v_boom_open_detector_1,
+  v_boom_open_detector, v_bijection_trains, v_bdc_start_to_crossing_start,
+  v_allowed_transitions, v_adc_start_to_crossing_start,
+  v_adc_end_to_crossing_start, v_TRAINS)))

@@ -1,0 +1,4 @@
+share: [
+  "setrip.bench"
+  "setrip-smallbuf.bench"
+]

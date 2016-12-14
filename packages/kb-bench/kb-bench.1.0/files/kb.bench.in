@@ -1,0 +1,3 @@
+((name kb)
+ (descr "Knuth-Bendix completion algorith benchmark.")
+ (cmd (%{bin}%/kb-bench)) (speed Slow))

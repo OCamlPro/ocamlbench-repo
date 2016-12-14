@@ -1,0 +1,3 @@
+((name async_rpc)
+ (descr "An async rpc benchmark.")
+ (cmd (%{bin}%/async_rpc_bench)) (speed Slow))

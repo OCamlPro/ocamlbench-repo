@@ -1,0 +1,47 @@
+share: [
+  "compcert.bench"
+  "raytracer/arrays.c" { "raytracer/arrays.c" }
+  "raytracer/arrays.s" { "raytracer/arrays.s.expected" }
+  "raytracer/arrays.h" { "raytracer/arrays.h" }
+  "raytracer/config.h" { "raytracer/config.h" }
+  "raytracer/eval.c" { "raytracer/eval.c" }
+  "raytracer/eval.s" { "raytracer/eval.s.expected" }
+  "raytracer/eval.h" { "raytracer/eval.h" }
+  "raytracer/gml.h" { "raytracer/gml.h" }
+  "raytracer/gmllexer.c" { "raytracer/gmllexer.c" }
+  "raytracer/gmllexer.s" { "raytracer/gmllexer.s.expected" }
+  "raytracer/gmllexer.h" { "raytracer/gmllexer.h" }
+  "raytracer/gmlparser.c" { "raytracer/gmlparser.c" }
+  "raytracer/gmlparser.s" { "raytracer/gmlparser.s.expected" }
+  "raytracer/gmlparser.h" { "raytracer/gmlparser.h" }
+  "raytracer/intersect.c" { "raytracer/intersect.c" }
+  "raytracer/intersect.s" { "raytracer/intersect.s.expected" }
+  "raytracer/intersect.h" { "raytracer/intersect.h" }
+  "raytracer/kal.gml" { "raytracer/kal.gml" }
+  "raytracer/light.c" { "raytracer/light.c" }
+  "raytracer/light.s" { "raytracer/light.s.expected" }
+  "raytracer/light.h" { "raytracer/light.h" }
+  "raytracer/main.c" { "raytracer/main.c" }
+  "raytracer/main.s" { "raytracer/main.s.expected" }
+  "raytracer/matrix.c" { "raytracer/matrix.c" }
+  "raytracer/matrix.s" { "raytracer/matrix.s.expected" }
+  "raytracer/matrix.h" { "raytracer/matrix.h" }
+  "raytracer/memory.c" { "raytracer/memory.c" }
+  "raytracer/memory.s" { "raytracer/memory.s.expected" }
+  "raytracer/object.c" { "raytracer/object.c" }
+  "raytracer/object.s" { "raytracer/object.s.expected" }
+  "raytracer/object.h" { "raytracer/object.h" }
+  "raytracer/point.h" { "raytracer/point.h" }
+  "raytracer/render.c" { "raytracer/render.c" }
+  "raytracer/render.s" { "raytracer/render.s.expected" }
+  "raytracer/render.h" { "raytracer/render.h" }
+  "raytracer/simplify.c" { "raytracer/simplify.c" }
+  "raytracer/simplify.s" { "raytracer/simplify.s.expected" }
+  "raytracer/simplify.h" { "raytracer/simplify.h" }
+  "raytracer/surface.c" { "raytracer/surface.c" }
+  "raytracer/surface.s" { "raytracer/surface.s.expected" }
+  "raytracer/surface.h" { "raytracer/surface.h" }
+  "raytracer/vector.c" { "raytracer/vector.c" }
+  "raytracer/vector.s" { "raytracer/vector.s.expected" }
+  "raytracer/vector.h" { "raytracer/vector.h" }
+]

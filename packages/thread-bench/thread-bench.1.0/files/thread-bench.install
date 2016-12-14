@@ -1,0 +1,15 @@
+bin: [
+  "thread/thread_ring_async_pipe"
+  "thread/thread_ring_lwt_mvar"
+  "thread/thread_ring_lwt_stream"
+  "thread/thread_sleep_async"
+  "thread/thread_sleep_lwt"
+]
+
+share: [
+  "thread_ring_async_pipe.bench"
+  "thread_ring_lwt_mvar.bench"
+  "thread_ring_lwt_stream.bench"
+  "thread_sleep_async.bench"
+  "thread_sleep_lwt.bench"
+]

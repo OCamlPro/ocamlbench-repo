@@ -1,0 +1,4 @@
+((name numal-lu-decomposition)
+ (descr "numerical analysis benches (lu-decomposition)")
+ (cmd (%{bin}%/lu-decomposition))
+ (speed Slow))

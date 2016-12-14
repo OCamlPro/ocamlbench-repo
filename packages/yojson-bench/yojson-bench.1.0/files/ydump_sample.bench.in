@@ -1,0 +1,4 @@
+((name "ydump-sample")
+ (descr "ydump -c sample.json")
+ (cmd (%{bin}%/ydump_bench -c %{json-bench-data:share}%/sample.json))
+(speed Fast) (discard (Stdout)))

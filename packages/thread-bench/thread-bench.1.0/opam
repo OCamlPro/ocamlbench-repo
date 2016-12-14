@@ -1,0 +1,19 @@
+opam-version: "2.0"
+name: "thread-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+depends: [
+  "ocaml"
+  "lwt" {= "2.4.8"}
+  "async" {= "112.17.00"}
+]
+build: [ [make "-C" "thread"] ]
+substs: [
+  "thread_ring_async_pipe.bench"
+  "thread_ring_lwt_mvar.bench"
+  "thread_ring_lwt_stream.bench"
+  "thread_sleep_async.bench"
+  "thread_sleep_lwt.bench"
+]
+flags: light-uninstall

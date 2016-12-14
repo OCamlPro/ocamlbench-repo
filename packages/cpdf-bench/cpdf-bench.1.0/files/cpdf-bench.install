@@ -1,0 +1,8 @@
+share: [
+  "cpdf-merge.bench"
+  "cpdf-reformat.bench"
+  "cpdf-squeeze.bench"
+  "cpdf-transform.bench"
+  "pdfs/metro_geo.pdf" {"pdfs/metro_geo.pdf"}
+  "pdfs/PDFReference16.pdf_toobig" {"pdfs/PDFReference16.pdf_toobig"}
+]

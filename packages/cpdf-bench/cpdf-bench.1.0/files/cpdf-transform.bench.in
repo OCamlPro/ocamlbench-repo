@@ -1,0 +1,4 @@
+((name cpdf-transform)
+ (descr "Cpdf transform on a large map")
+ (cmd (%{bin}%/cpdf -blacktext %{cpdf-bench:share}%/pdfs/metro_geo.pdf -o /dev/null))
+ (speed Slow))

@@ -1,0 +1,11 @@
+opam-version: "2.0"
+tags: [ "benchmark" ]
+maintainer: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+depends: ["ocaml" "cpdf"]
+substs: [
+  "cpdf-merge.bench"
+  "cpdf-reformat.bench"
+  "cpdf-squeeze.bench"
+  "cpdf-transform.bench"
+]
+flags: light-uninstall

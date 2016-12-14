@@ -1,0 +1,3 @@
+((name async_echo_merge)
+ (descr "An async echo merge benchmark.")
+ (cmd (%{bin}%/async_echo_merge_bench -nbr 20000)) (speed Slow))

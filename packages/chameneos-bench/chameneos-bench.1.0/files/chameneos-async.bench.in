@@ -1,0 +1,3 @@
+((name chameneos-async)
+ (descr "chameneos, Async")
+ (cmd (%{bin}%/chameneos_redux_async 300000)))

@@ -1,0 +1,9 @@
+bin: [
+  "sequence/test.native" {"ocp-sequence-bench"}
+  "sequence/test_cps.native" {"ocp-sequence-cps-bench"}
+]
+
+share: [
+  "sequence.bench"
+  "sequence_cps.bench"
+]

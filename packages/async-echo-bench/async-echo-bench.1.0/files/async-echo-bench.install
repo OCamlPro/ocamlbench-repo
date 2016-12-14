@@ -1,0 +1,9 @@
+bin: [
+  "async_echo/echo_client.native" {"async_echo_client_bench"}
+  "async_echo/echo_server.native" {"async_echo_server_bench"}
+  "async_echo/echo_merge.native" {"async_echo_merge_bench"}
+]
+
+share: [
+  "async_echo_merge.bench"
+]

@@ -1,0 +1,3 @@
+((name "thread-ring-lwt-stream")
+ (descr "Message passing between threads")
+ (cmd (%{bin}%/thread_ring_lwt_stream)))

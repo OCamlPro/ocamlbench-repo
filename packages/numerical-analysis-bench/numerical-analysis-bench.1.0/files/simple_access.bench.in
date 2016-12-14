@@ -1,0 +1,4 @@
+((name numal-simple_access)
+ (descr "numerical analysis benches (simple_access)")
+ (cmd (%{bin}%/simple_access))
+ (speed Slow))

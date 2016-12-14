@@ -1,0 +1,7 @@
+bin: [
+  "async_rpc/rpc_server.native" {"async_rpc_bench"}
+]
+
+share: [
+  "async_rpc.bench"
+]

@@ -1,0 +1,11 @@
+opam-version: "2.0"
+name: "lexifi-g2pp-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+build: [ [make "-C" "lexifi-g2pp"] ]
+substs: [
+  "lexifi-g2pp.bench"
+]
+depends: ["ocaml"]
+flags: light-uninstall

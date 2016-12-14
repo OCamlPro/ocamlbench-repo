@@ -1,0 +1,33 @@
+(* this is a prelude for Alt-Ergo*)
+(* this is a prelude for Alt-Ergo integer arithmetic *)
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+logic f : int -> int
+
+axiom H1 : (forall n:int. ((0 <= n) -> (0 <= f(n))))
+
+axiom H2 : (forall n:int. ((0 <= n) -> (f(f(n)) <  f((n + 1)))))
+
+predicate p(k: int) = (forall n:int. ((0 <= n) -> (k <= f((n + k)))))
+
+axiom base : p(0)
+
+axiom induction_step : (forall n:int. ((0 <= n) -> (p(n) -> p((n + 1)))))
+
+axiom SimpleInduction : (forall n:int. ((0 <= n) -> p(n)))
+
+axiom L31 : (forall n:int. ((0 <= n) -> (n <= f(n))))
+
+axiom L32 : (forall n:int. ((0 <= n) -> (f(n) <= f(f(n)))))
+
+axiom L4 : (forall n:int. ((0 <= n) -> (f(n) <  f((n + 1)))))
+
+predicate pqt(k: int) =
+  (forall n:int. forall m:int. (((0 <= n) and ((n <= m) and (m <= k))) ->
+  (f(n) <= f(m))))
+
+axiom base1 : pqt(0)
+
+goal induction_step1 : (forall n:int. ((0 <= n) -> (pqt(n) -> pqt((n + 1)))))

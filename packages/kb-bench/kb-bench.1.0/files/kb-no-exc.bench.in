@@ -1,0 +1,3 @@
+((name kb-no-exc)
+ (descr "Knuth-Bendix completion algorith benchmark without using exceptions.")
+ (cmd (%{bin}%/kb-no-exc-bench)) (speed Slow))

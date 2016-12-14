@@ -1,0 +1,4 @@
+((name coqchk-int)
+ (descr "coq check on Int")
+ (cmd (%{bin}%/coqchk.opt Int))
+ (speed Slower))

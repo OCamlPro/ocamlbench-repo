@@ -1,0 +1,4 @@
+((name patdiff)
+ (descr "patdiff on large different files")
+ (cmd (%{bin}%/patdiff -quiet %{patdiff-bench:share}%/file1 %{patdiff-bench:share}%/file2))
+(speed Fast) (discard (Stdout)) (return_value 1))

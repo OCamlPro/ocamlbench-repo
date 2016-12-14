@@ -1,0 +1,3394 @@
+(* this is a prelude for Alt-Ergo*)
+(* this is a prelude for Alt-Ergo integer arithmetic *)
+logic safe_comp_div: int, int -> int
+axiom safe_comp_div_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_div(x,y) = x / y
+logic safe_comp_mod: int, int -> int
+axiom safe_comp_mod_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_mod(x,y) = x % y
+logic match_bool : bool, 'a, 'a -> 'a
+
+axiom match_bool_True :
+  (forall z:'a. forall z1:'a. (match_bool(true, z, z1) = z))
+
+axiom match_bool_False :
+  (forall z:'a. forall z1:'a. (match_bool(false, z, z1) = z1))
+
+function andb(x: bool, y: bool) : bool = match_bool(x, y, false)
+
+function orb(x: bool, y: bool) : bool = match_bool(x, true, y)
+
+function xorb(x: bool, y: bool) : bool = match_bool(y, match_bool(x, false,
+  true), match_bool(x, true, false))
+
+function notb(x: bool) : bool = match_bool(x, false, true)
+
+function implb(x: bool, y: bool) : bool = match_bool(y, true, match_bool(x,
+  false, true))
+
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+logic abs : int -> int
+
+axiom abs_def : (forall x:int. ((0 <= x) -> (abs(x) = x)))
+
+axiom abs_def1 : (forall x:int. ((not (0 <= x)) -> (abs(x) = (-x))))
+
+axiom Abs_le : (forall x:int. forall y:int. ((abs(x) <= y) -> ((-y) <= x)))
+
+axiom Abs_le1 : (forall x:int. forall y:int. ((abs(x) <= y) -> (x <= y)))
+
+axiom Abs_le2 :
+  (forall x:int. forall y:int. ((((-y) <= x) and (x <= y)) -> (abs(x) <= y)))
+
+axiom Abs_pos : (forall x:int. (0 <= abs(x)))
+
+axiom Div_mod :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (x = ((y * safe_comp_div(x,y)) + safe_comp_mod(x,y)))))
+
+axiom Div_bound :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_bound1 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= x)))
+
+axiom Mod_bound :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  ((-abs(y)) <  safe_comp_mod(x,y))))
+
+axiom Mod_bound1 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (safe_comp_mod(x,y) <  abs(y))))
+
+axiom Div_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= 0)))
+
+axiom Mod_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (not (y = 0))) ->
+  (0 <= safe_comp_mod(x,y))))
+
+axiom Mod_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (not (y = 0))) ->
+  (safe_comp_mod(x,y) <= 0)))
+
+axiom Rounds_toward_zero :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (abs((safe_comp_div(x,y) * y)) <= abs(x))))
+
+axiom Div_1 : (forall x:int. (safe_comp_div(x,1) = x))
+
+axiom Mod_1 : (forall x:int. (safe_comp_mod(x,1) = 0))
+
+axiom Div_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_div(x,y) = 0)))
+
+axiom Mod_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_mod(x,y) = x)))
+
+axiom Div_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_div(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_div(((x * y) + z),x) = (y + safe_comp_div(z,x)))))
+
+axiom Mod_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_mod(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_mod(((x * y) + z),x) = safe_comp_mod(z,x))))
+
+type 'a set
+
+logic mem : 'a, 'a set -> prop
+
+predicate infix_eqeq(s1: 'a set, s2: 'a set) =
+  (forall x:'a. (mem(x, s1) <-> mem(x, s2)))
+
+axiom extensionality :
+  (forall s1:'a set. forall s2:'a set. (infix_eqeq(s1, s2) -> (s1 = s2)))
+
+predicate subset(s1: 'a set, s2: 'a set) =
+  (forall x:'a. (mem(x, s1) -> mem(x, s2)))
+
+axiom subset_refl : (forall s:'a set. subset(s, s))
+
+axiom subset_trans :
+  (forall s1:'a set. forall s2:'a set. forall s3:'a set. (subset(s1, s2) ->
+  (subset(s2, s3) -> subset(s1, s3))))
+
+logic empty : 'a set
+
+predicate is_empty(s: 'a set) = (forall x:'a. (not mem(x, s)))
+
+axiom empty_def1 : is_empty((empty : 'a set))
+
+axiom mem_empty : (forall x:'a. (not mem(x, (empty : 'a set))))
+
+axiom mem_empty1 : true
+
+logic add : 'a, 'a set -> 'a set
+
+axiom add_def1 :
+  (forall x:'a. forall y:'a.
+  (forall s:'a set. (mem(x, add(y, s)) -> ((x = y) or mem(x, s)))))
+
+axiom add_def11 :
+  (forall x:'a. forall y:'a.
+  (forall s:'a set. (((x = y) or mem(x, s)) -> mem(x, add(y, s)))))
+
+logic remove : 'a, 'a set -> 'a set
+
+axiom remove_def1 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem(x, remove(y, s)) ->
+  (not (x = y))))
+
+axiom remove_def11 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem(x, remove(y, s)) -> mem(x,
+  s)))
+
+axiom remove_def12 :
+  (forall x:'a. forall y:'a. forall s:'a set. (((not (x = y)) and mem(x,
+  s)) -> mem(x, remove(y, s))))
+
+axiom subset_remove : (forall x:'a. forall s:'a set. subset(remove(x, s), s))
+
+logic union : 'a set, 'a set -> 'a set
+
+axiom union_def1 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, union(s1, s2)) ->
+  (mem(x, s1) or mem(x, s2))))
+
+axiom union_def11 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. ((mem(x, s1) or mem(x,
+  s2)) -> mem(x, union(s1, s2))))
+
+logic inter : 'a set, 'a set -> 'a set
+
+axiom inter_def1 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, inter(s1, s2)) ->
+  mem(x, s1)))
+
+axiom inter_def11 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, inter(s1, s2)) ->
+  mem(x, s2)))
+
+axiom inter_def12 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. ((mem(x, s1) and mem(x,
+  s2)) -> mem(x, inter(s1, s2))))
+
+logic diff : 'a set, 'a set -> 'a set
+
+axiom diff_def1 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, diff(s1, s2)) ->
+  mem(x, s1)))
+
+axiom diff_def11 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. (mem(x, diff(s1, s2)) ->
+  (not mem(x, s2))))
+
+axiom diff_def12 :
+  (forall s1:'a set. forall s2:'a set. forall x:'a. ((mem(x, s1) and
+  (not mem(x, s2))) -> mem(x, diff(s1, s2))))
+
+axiom subset_diff :
+  (forall s1:'a set. forall s2:'a set. subset(diff(s1, s2), s1))
+
+logic choose : 'a set -> 'a
+
+axiom choose_def :
+  (forall s:'a set. ((not is_empty(s)) -> mem(choose(s), s)))
+
+logic all : 'a set
+
+axiom all_def : (forall x:'a. mem(x, (all : 'a set)))
+
+logic b_bool : bool set
+
+axiom mem_b_bool : (forall x:bool. mem(x, b_bool))
+
+logic integer : int set
+
+axiom mem_integer : (forall x:int. mem(x, integer))
+
+logic natural : int set
+
+axiom mem_natural : (forall x:int. (mem(x, natural) -> (0 <= x)))
+
+axiom mem_natural1 : (forall x:int. ((0 <= x) -> mem(x, natural)))
+
+logic nat : int set
+
+axiom mem_nat : (forall x:int. (mem(x, nat) -> (0 <= x)))
+
+axiom mem_nat1 : (forall x:int. (mem(x, nat) -> (x <= 2147483647)))
+
+axiom mem_nat2 :
+  (forall x:int. (((0 <= x) and (x <= 2147483647)) -> mem(x, nat)))
+
+logic mk : int, int -> int set
+
+axiom mem_interval :
+  (forall x:int. forall a:int. forall b:int [mem(x, mk(a, b))]. (mem(x, mk(a,
+  b)) -> (a <= x)))
+
+axiom mem_interval1 :
+  (forall x:int. forall a:int. forall b:int [mem(x, mk(a, b))]. (mem(x, mk(a,
+  b)) -> (x <= b)))
+
+axiom mem_interval2 :
+  (forall x:int. forall a:int. forall b:int [mem(x, mk(a, b))].
+  (((a <= x) and (x <= b)) -> mem(x, mk(a, b))))
+
+axiom interval_empty :
+  (forall a:int. forall b:int. ((b <  a) -> (mk(a, b) = (empty : int set))))
+
+axiom interval_add :
+  (forall a:int. forall b:int. ((a <= b) -> (mk(a, b) = add(b, mk(a,
+  (b - 1))))))
+
+logic power : 'a set -> 'a set set
+
+axiom mem_power :
+  (forall x:'a set. forall y:'a set [mem(x, power(y))]. (mem(x, power(y)) ->
+  subset(x, y)))
+
+axiom mem_power1 :
+  (forall x:'a set. forall y:'a set [mem(x, power(y))]. (subset(x, y) ->
+  mem(x, power(y))))
+
+type ('a, 'a1) tuple2 = { Tuple2_proj_1 : 'a; Tuple2_proj_2 : 'a1
+}
+
+type ('a2,
+'b) rel
+
+logic relation : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_relation :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  relation(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(x, s)))))
+
+axiom mem_relation1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  relation(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(y, t)))))
+
+axiom mem_relation2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  ((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+   f) -> (mem(x, s) and mem(y, t)))) ->
+  mem(f, relation(s, t))))
+
+logic image : ('a, 'b) tuple2 set, 'a set -> 'b set
+
+axiom mem_image :
+  (forall r:('a, 'b) tuple2 set. forall dom:'a set. forall y:'b [mem(y,
+  image(r, dom))]. (mem(y, image(r, dom)) ->
+  (exists x:'a. (mem(x, dom) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+  }, r)))))
+
+axiom mem_image1 :
+  (forall r:('a, 'b) tuple2 set. forall dom:'a set. forall y:'b [mem(y,
+  image(r, dom))].
+  ((exists x:'a. (mem(x, dom) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+   }, r))) ->
+  mem(y, image(r, dom))))
+
+axiom image_union :
+  (forall r:('a, 'b) tuple2 set. forall s:'a set. forall t:'a set. (image(r,
+  union(s, t)) = union(image(r, s), image(r, t))))
+
+axiom image_add :
+  (forall r:('a, 'b) tuple2 set. forall dom:'a set. forall x:'a. (image(r,
+  add(x, dom)) = union(image(r, add(x, (empty : 'a set))), image(r, dom))))
+
+logic infix_plmngt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngt(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(x, s)))))
+
+axiom mem_function1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngt(s, t)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  f) -> mem(y, t)))))
+
+axiom mem_function2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_plmngt(s, t)) ->
+  (forall x:'a. forall y1:'b. forall y2:'b. ((mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y1 }, f) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y2 },
+  f)) -> (y1 = y2)))))
+
+axiom mem_function3 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  (((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+    f) -> (mem(x, s) and mem(y, t)))) and
+  (forall x:'a. forall y1:'b. forall y2:'b. ((mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y1 }, f) and mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y2 },
+  f)) -> (y1 = y2)))) -> mem(f, infix_plmngt(s, t))))
+
+axiom domain_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall x:'a. forall y:'b. (mem(f, infix_plmngt(s, t)) -> (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, f) -> mem(x, s))))
+
+axiom range_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall x:'a. forall y:'b. (mem(f, infix_plmngt(s, t)) -> (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, f) -> mem(y, t))))
+
+axiom function_extend_range :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall u:'b set. (subset(t, u) -> (mem(f, infix_plmngt(s, t)) -> mem(f,
+  infix_plmngt(s, u)))))
+
+axiom function_reduce_range :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall u:'b set. (subset(u, t) -> (mem(f, infix_plmngt(s, t)) ->
+  ((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+   f) -> mem(y, u))) ->
+  mem(f, infix_plmngt(s, u))))))
+
+logic inverse : ('a, 'b) tuple2 set -> ('b, 'a) tuple2 set
+
+axiom Inverse_def :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = x },
+  inverse(r)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r))))
+
+axiom Inverse_def1 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r) -> mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = x }, inverse(r)))))
+
+logic dom : ('a, 'b) tuple2 set -> 'a set
+
+axiom dom_def :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a. (mem(x, dom(r)) ->
+  (exists y:'b. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)))))
+
+axiom dom_def1 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall x:'a.
+  ((exists y:'b. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)) -> mem(x,
+  dom(r)))))
+
+logic ran : ('a, 'b) tuple2 set -> 'b set
+
+axiom ran_def :
+  (forall r:('a, 'b) tuple2 set.
+  (forall y:'b. (mem(y, ran(r)) ->
+  (exists x:'a. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)))))
+
+axiom ran_def1 :
+  (forall r:('a, 'b) tuple2 set.
+  (forall y:'b.
+  ((exists x:'a. mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r)) -> mem(y,
+  ran(r)))))
+
+axiom dom_empty : (dom((empty : ('a, 'b) tuple2 set)) = (empty : 'a set))
+
+axiom dom_add :
+  (forall f:('a, 'b) tuple2 set. forall x:'a. forall y:'b. (dom(add({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, f)) = add(x, dom(f))))
+
+axiom dom_singleton :
+  (forall x:'a. forall y:'b. (dom(add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+  }, (empty : ('a, 'b) tuple2 set))) = add(x, (empty : 'a set))))
+
+logic infix_mnmngt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_total_functions :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_mnmngt(s, t)) -> mem(f, infix_plmngt(s, t))))
+
+axiom mem_total_functions1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_mnmngt(s, t)) -> (dom(f) = s)))
+
+axiom mem_total_functions2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_plmngt(s, t)) and (dom(f) = s)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom total_function_is_function :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set [mem(f,
+  infix_mnmngt(s, t))]. (mem(f, infix_mnmngt(s, t)) -> mem(f, infix_plmngt(s,
+  t))))
+
+axiom singleton_is_partial_function :
+  (forall s:'a set. forall t:'b set. forall x:'a. forall y:'b. ((mem(x,
+  s) and mem(y, t)) -> mem(add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  (empty : ('a, 'b) tuple2 set)), infix_plmngt(s, t))))
+
+axiom singleton_is_function :
+  (forall x:'a. forall y:'b [add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  (empty : ('a, 'b) tuple2 set))]. mem(add({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, (empty : ('a, 'b) tuple2 set)), infix_mnmngt(add(x,
+  (empty : 'a set)), add(y, (empty : 'b set)))))
+
+logic apply : ('a, 'b) tuple2 set, 'a -> 'b
+
+axiom apply_def0 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall a1:'a. ((mem(f, infix_plmngt(s, t)) and mem(a1, dom(f))) -> mem({
+  Tuple2_proj_1 = a1; Tuple2_proj_2 = apply(f, a1) }, f)))
+
+axiom apply_def1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall a1:'a. ((mem(f, infix_mnmngt(s, t)) and mem(a1, s)) -> mem({
+  Tuple2_proj_1 = a1; Tuple2_proj_2 = apply(f, a1) }, f)))
+
+axiom apply_def2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  forall a1:'a. forall b1:'b. ((mem(f, infix_plmngt(s, t)) and mem({
+  Tuple2_proj_1 = a1; Tuple2_proj_2 = b1 }, f)) -> (apply(f, a1) = b1)))
+
+axiom apply_singleton :
+  (forall x:'a. forall y:'b. (apply(add({ Tuple2_proj_1 = x; Tuple2_proj_2 =
+  y }, (empty : ('a, 'b) tuple2 set)), x) = y))
+
+axiom apply_range :
+  (forall x:'a. forall f:('a, 'b) tuple2 set. forall s:'a set.
+  forall t:'b set [mem(f, infix_plmngt(s, t)), apply(f, x)]. ((mem(f,
+  infix_plmngt(s, t)) and mem(x, dom(f))) -> mem(apply(f, x), t)))
+
+logic semicolon : ('a, 'b) tuple2 set, ('b, 'c) tuple2 set -> ('a,
+  'c) tuple2 set
+
+axiom semicolon_def :
+  (forall x:'a. forall z:'c. forall p:('a, 'b) tuple2 set. forall q:('b,
+  'c) tuple2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = z }, semicolon(p,
+  q)) ->
+  (exists y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, p) and mem({
+  Tuple2_proj_1 = y; Tuple2_proj_2 = z }, q)))))
+
+axiom semicolon_def1 :
+  (forall x:'a. forall z:'c. forall p:('a, 'b) tuple2 set. forall q:('b,
+  'c) tuple2 set.
+  ((exists y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, p) and mem({
+   Tuple2_proj_1 = y; Tuple2_proj_2 = z }, q))) ->
+  mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = z }, semicolon(p, q))))
+
+logic direct_product : ('a, 'b) tuple2 set, ('a, 'c) tuple2 set -> ('a, ('b,
+  'c) tuple2) tuple2 set
+
+axiom direct_product_def :
+  (forall e:('t, ('u, 'v) tuple2) tuple2. forall r1:('t, 'u) tuple2 set.
+  forall r2:('t, 'v) tuple2 set [mem(e, direct_product(r1, r2))]. (mem(e,
+  direct_product(r1, r2)) ->
+  (exists x:'t. exists y:'u. exists z:'v. (({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = { Tuple2_proj_1 = y; Tuple2_proj_2 = z } } = e) and (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r1) and mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = z }, r2))))))
+
+axiom direct_product_def1 :
+  (forall e:('t, ('u, 'v) tuple2) tuple2. forall r1:('t, 'u) tuple2 set.
+  forall r2:('t, 'v) tuple2 set [mem(e, direct_product(r1, r2))].
+  ((exists x:'t. exists y:'u. exists z:'v. (({ Tuple2_proj_1 = x;
+   Tuple2_proj_2 = { Tuple2_proj_1 = y; Tuple2_proj_2 = z } } = e) and (mem({
+   Tuple2_proj_1 = x; Tuple2_proj_2 = y }, r1) and mem({ Tuple2_proj_1 = x;
+   Tuple2_proj_2 = z }, r2)))) ->
+  mem(e, direct_product(r1, r2))))
+
+logic parallel_product : ('a, 'b) tuple2 set, ('c, 'd) tuple2 set -> (('a,
+  'c) tuple2, ('b, 'd) tuple2) tuple2 set
+
+axiom parallel_product_def :
+  (forall e:(('t, 'v) tuple2, ('u, 'w) tuple2) tuple2. forall r1:('t,
+  'u) tuple2 set. forall r2:('v, 'w) tuple2 set. (mem(e, parallel_product(r1,
+  r2)) ->
+  (exists x:'t. exists y:'v. exists z:'u. exists a:'w. (({ Tuple2_proj_1 = {
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }; Tuple2_proj_2 = { Tuple2_proj_1 =
+  z; Tuple2_proj_2 = a } } = e) and (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 =
+  z }, r1) and mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = a }, r2))))))
+
+axiom parallel_product_def1 :
+  (forall e:(('t, 'v) tuple2, ('u, 'w) tuple2) tuple2. forall r1:('t,
+  'u) tuple2 set. forall r2:('v, 'w) tuple2 set.
+  ((exists x:'t. exists y:'v. exists z:'u. exists a:'w. (({ Tuple2_proj_1 = {
+   Tuple2_proj_1 = x; Tuple2_proj_2 = y }; Tuple2_proj_2 = { Tuple2_proj_1 =
+   z; Tuple2_proj_2 = a } } = e) and (mem({ Tuple2_proj_1 = x;
+   Tuple2_proj_2 = z }, r1) and mem({ Tuple2_proj_1 = y; Tuple2_proj_2 = a },
+   r2)))) ->
+  mem(e, parallel_product(r1, r2))))
+
+axiom semicolon_dom :
+  (forall f:('a, 'b) tuple2 set. forall g:('b, 'c) tuple2 set.
+  subset(dom(semicolon(f, g)), dom(f)))
+
+axiom semicolon_is_function :
+  (forall f:('a, 'b) tuple2 set. forall g:('b, 'c) tuple2 set.
+  forall s:'a set. forall t:'b set. forall u:'c set. ((mem(f, infix_plmngt(s,
+  t)) and mem(g, infix_plmngt(t, u))) -> mem(semicolon(f, g), infix_plmngt(s,
+  u))))
+
+axiom apply_compose :
+  (forall x:'a. forall f:('a, 'b) tuple2 set. forall g:('b, 'c) tuple2 set.
+  forall s:'a set. forall t:'b set. forall u:'c set. ((mem(f, infix_plmngt(s,
+  t)) and (mem(g, infix_plmngt(t, u)) and (mem(x, dom(f)) and mem(apply(f,
+  x), dom(g))))) -> (apply(semicolon(f, g), x) = apply(g, apply(f, x)))))
+
+logic infix_gtplgt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_partial_injection :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtplgt(s, t)) -> mem(f, infix_plmngt(s, t))))
+
+axiom mem_partial_injection1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtplgt(s, t)) -> mem(inverse(f), infix_plmngt(t, s))))
+
+axiom mem_partial_injection2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_plmngt(s, t)) and mem(inverse(f), infix_plmngt(t, s))) -> mem(f,
+  infix_gtplgt(s, t))))
+
+logic infix_gtmngt : 'a set, 'b set -> ('a, 'b) tuple2 set set
+
+axiom mem_total_injection :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(f, infix_gtplgt(s, t))))
+
+axiom mem_total_injection1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom mem_total_injection2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_gtplgt(s, t)) and mem(f, infix_mnmngt(s, t))) -> mem(f,
+  infix_gtmngt(s, t))))
+
+axiom mem_total_injection_alt :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(f, infix_mnmngt(s, t))))
+
+axiom mem_total_injection_alt1 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. (mem(f,
+  infix_gtmngt(s, t)) -> mem(inverse(f), infix_plmngt(t, s))))
+
+axiom mem_total_injection_alt2 :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set. ((mem(f,
+  infix_mnmngt(s, t)) and mem(inverse(f), infix_plmngt(t, s))) -> mem(f,
+  infix_gtmngt(s, t))))
+
+axiom injection :
+  (forall f:('a, 'b) tuple2 set. forall s:'a set. forall t:'b set.
+  (forall x:'a. forall y:'a. (mem(f, infix_gtmngt(s, t)) -> (mem(x, s) ->
+  (mem(y, s) -> ((apply(f, x) = apply(f, y)) -> (x = y)))))))
+
+logic id : 'a set -> ('a, 'a) tuple2 set
+
+axiom id_def :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, id(s)) -> mem(x, s)))
+
+axiom id_def1 :
+  (forall x:'a. forall y:'a. forall s:'a set. (mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, id(s)) -> (x = y)))
+
+axiom id_def2 :
+  (forall x:'a. forall y:'a. forall s:'a set. ((mem(x, s) and (x = y)) ->
+  mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, id(s))))
+
+axiom id_dom : (forall s:'a set. (dom(id(s)) = s))
+
+axiom id_ran : (forall s:'a set. (ran(id(s)) = s))
+
+axiom id_fun : (forall s:'a set. mem(id(s), infix_plmngt(s, s)))
+
+axiom id_total_fun : (forall s:'a set. mem(id(s), infix_mnmngt(s, s)))
+
+function seq_length(n: int, s: 'a set) : (int, 'a) tuple2 set set =
+  infix_mnmngt(mk(1, n), s)
+
+axiom length_uniq :
+  (forall n1:int. forall n2:int. forall s1:'a set. forall s2:'a set.
+  forall r:(int, 'a) tuple2 set. (((0 <= n1) and mem(r, seq_length(n1,
+  s1))) -> (((0 <= n2) and mem(r, seq_length(n2, s2))) -> (n1 = n2))))
+
+logic size : (int, 'a) tuple2 set -> int
+
+axiom size_def :
+  (forall n:int. forall s:'a set. forall r:(int, 'a) tuple2 set.
+  (((0 <= n) and mem(r, seq_length(n, s))) -> (size(r) = n)))
+
+logic seq : 'a set -> (int, 'a) tuple2 set set
+
+axiom seq_def :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (mem(r, seq(s)) ->
+  (0 <= size(r))))
+
+axiom seq_def1 :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (mem(r, seq(s)) -> mem(r,
+  seq_length(size(r), s))))
+
+axiom seq_def2 :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (((0 <= size(r)) and
+  mem(r, seq_length(size(r), s))) -> mem(r, seq(s))))
+
+axiom seq_as_total_function :
+  (forall s:'a set. forall r:(int, 'a) tuple2 set. (mem(r, seq(s)) -> mem(r,
+  infix_mnmngt(mk(1, size(r)), s))))
+
+logic is_finite_subset : 'a set, 'a set, int -> prop
+
+axiom Empty : (forall s:'a set. is_finite_subset((empty : 'a set), s, 0))
+
+axiom Add_mem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set. forall c:int.
+  (is_finite_subset(s1, s2, c) -> (mem(x, s2) -> (mem(x, s1) ->
+  is_finite_subset(add(x, s1), s2, c)))))
+
+axiom Add_notmem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set. forall c:int.
+  (is_finite_subset(s1, s2, c) -> (mem(x, s2) -> ((not mem(x, s1)) ->
+  is_finite_subset(add(x, s1), s2, (c + 1))))))
+
+axiom is_finite_subset_inversion :
+  (forall z:'a set. forall z1:'a set. forall z2:int. (is_finite_subset(z, z1,
+  z2) ->
+  (((exists s:'a set. (((z = (empty : 'a set)) and (z1 = s)) and (z2 = 0))) or
+  (exists x:'a. exists s1:'a set. exists s2:'a set. exists c:int.
+  (is_finite_subset(s1, s2, c) and (mem(x, s2) and (mem(x, s1) and
+  (((z = add(x, s1)) and (z1 = s2)) and (z2 = c))))))) or
+  (exists x:'a. exists s1:'a set. exists s2:'a set. exists c:int.
+  (is_finite_subset(s1, s2, c) and (mem(x, s2) and ((not mem(x, s1)) and
+  (((z = add(x, s1)) and (z1 = s2)) and (z2 = (c + 1))))))))))
+
+axiom finite_interval :
+  (forall a:int. forall b:int. ((a <= b) -> is_finite_subset(mk(a, b),
+  integer, ((b - a) + 1))))
+
+axiom finite_interval_empty :
+  (forall a:int. forall b:int. ((b <  a) -> is_finite_subset(mk(a, b),
+  integer, 0)))
+
+logic finite_subsets : 'a set -> 'a set set
+
+axiom finite_subsets_def :
+  (forall s:'a set. forall x:'a set. (mem(x, finite_subsets(s)) ->
+  (exists c:int. is_finite_subset(x, s, c))))
+
+axiom finite_subsets_def1 :
+  (forall s:'a set. forall x:'a set.
+  ((exists c:int. is_finite_subset(x, s, c)) -> mem(x, finite_subsets(s))))
+
+axiom finite_Empty :
+  (forall s:'a set. mem((empty : 'a set), finite_subsets(s)))
+
+axiom finite_Add :
+  (forall x:'a. forall s1:'a set. forall s2:'a set. (mem(s1,
+  finite_subsets(s2)) -> (mem(x, s2) -> mem(add(x, s1),
+  finite_subsets(s2)))))
+
+axiom finite_Union :
+  (forall s1:'a set. forall s2:'a set. forall s3:'a set. (mem(s1,
+  finite_subsets(s3)) -> (mem(s2, finite_subsets(s3)) -> mem(union(s1, s2),
+  finite_subsets(s3)))))
+
+axiom finite_inversion :
+  (forall s1:'a set. forall s2:'a set. (mem(s1, finite_subsets(s2)) ->
+  ((s1 = (empty : 'a set)) or
+  (exists x:'a. exists s3:'a set. ((s1 = add(x, s3)) and mem(s3,
+  finite_subsets(s2)))))))
+
+axiom card_non_neg :
+  (forall s:'a set. forall x:'a set. forall c:int. (is_finite_subset(x, s,
+  c) -> (0 <= c)))
+
+axiom card_unique :
+  (forall s:'a set. forall x:'a set. forall c1:int. forall c2:int.
+  (is_finite_subset(x, s, c1) -> (is_finite_subset(x, s, c2) -> (c1 = c2))))
+
+logic card : 'a set -> int
+
+axiom card_def :
+  (forall s:'a set. forall x:'a set. forall c:int. (is_finite_subset(x, s,
+  c) -> (card(x) = c)))
+
+axiom card_Empty : (card((empty : 'a set)) = 0)
+
+axiom card_Add_not_mem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set [mem(s1,
+  finite_subsets(s2)), card(add(x, s1))]. (mem(s1, finite_subsets(s2)) ->
+  ((not mem(x, s1)) -> (card(add(x, s1)) = (card(s1) + 1)))))
+
+axiom card_Add_mem :
+  (forall x:'a. forall s1:'a set. forall s2:'a set [mem(s1,
+  finite_subsets(s2)), card(add(x, s1))]. (mem(s1, finite_subsets(s2)) ->
+  (mem(x, s1) -> (card(add(x, s1)) = card(s1)))))
+
+axiom card_Union :
+  (forall s1:'a set. forall s2:'a set. forall s3:'a set [mem(s1,
+  finite_subsets(s3)), mem(s2, finite_subsets(s3)), card(union(s1, s2))].
+  (mem(s1, finite_subsets(s3)) -> (mem(s2, finite_subsets(s3)) ->
+  (is_empty(inter(s1, s2)) -> (card(union(s1,
+  s2)) = (card(s1) + card(s2)))))))
+
+logic times : 'a set, 'b set -> ('a, 'b) tuple2 set
+
+axiom times_def :
+  (forall a:'a1 set. forall b:'b1 set. forall x:'a1. forall y:'b1 [mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))]. (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b)) -> mem(x, a)))
+
+axiom times_def1 :
+  (forall a:'a1 set. forall b:'b1 set. forall x:'a1. forall y:'b1 [mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))]. (mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b)) -> mem(y, b)))
+
+axiom times_def2 :
+  (forall a:'a1 set. forall b:'b1 set. forall x:'a1. forall y:'b1 [mem({
+  Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))]. ((mem(x, a) and
+  mem(y, b)) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, times(a, b))))
+
+function relations(u: 'a set, v: 'b set) : ('a, 'b) tuple2 set set =
+  power(times(u, v))
+
+axiom break_mem_in_add :
+  (forall c:('a, 'b) tuple2. forall s:('a, 'b) tuple2 set. forall x:'a.
+  forall y:'b. (mem(c, add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, s)) ->
+  ((c = { Tuple2_proj_1 = x; Tuple2_proj_2 = y }) or mem(c, s))))
+
+axiom break_mem_in_add1 :
+  (forall c:('a, 'b) tuple2. forall s:('a, 'b) tuple2 set. forall x:'a.
+  forall y:'b. (((c = { Tuple2_proj_1 = x; Tuple2_proj_2 = y }) or mem(c,
+  s)) -> mem(c, add({ Tuple2_proj_1 = x; Tuple2_proj_2 = y }, s))))
+
+axiom break_power_times :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (mem(r,
+  power(times(u, v))) -> subset(r, times(u, v))))
+
+axiom break_power_times1 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (subset(r,
+  times(u, v)) -> mem(r, power(times(u, v)))))
+
+axiom subset_of_times :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (subset(r,
+  times(u, v)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r) -> mem(x, u)))))
+
+axiom subset_of_times1 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set. (subset(r,
+  times(u, v)) ->
+  (forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  r) -> mem(y, v)))))
+
+axiom subset_of_times2 :
+  (forall r:('a, 'b) tuple2 set. forall u:'a set. forall v:'b set.
+  ((forall x:'a. forall y:'b. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+   r) -> (mem(x, u) and mem(y, v)))) ->
+  subset(r, times(u, v))))
+
+axiom apply_times :
+  (forall s:'a set. forall x:'a. forall y:'b [apply(times(s, add(y,
+  (empty : 'b set))), x)]. (mem(x, s) -> (apply(times(s, add(y,
+  (empty : 'b set))), x) = y)))
+
+logic infix_lspl : ('a, 'b) tuple2 set, ('a, 'b) tuple2 set -> ('a,
+  'b) tuple2 set
+
+axiom overriding_def :
+  (forall x:'a. forall y:'b. forall q:('a, 'b) tuple2 set. forall r:('a,
+  'b) tuple2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  infix_lspl(q, r)) -> (mem(x, dom(r)) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r))))
+
+axiom overriding_def1 :
+  (forall x:'a. forall y:'b. forall q:('a, 'b) tuple2 set. forall r:('a,
+  'b) tuple2 set. (mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y },
+  infix_lspl(q, r)) -> ((not mem(x, dom(r))) -> mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, q))))
+
+axiom overriding_def2 :
+  (forall x:'a. forall y:'b. forall q:('a, 'b) tuple2 set. forall r:('a,
+  'b) tuple2 set. (((mem(x, dom(r)) and mem({ Tuple2_proj_1 = x;
+  Tuple2_proj_2 = y }, r)) or ((not mem(x, dom(r))) and mem({ Tuple2_proj_1 =
+  x; Tuple2_proj_2 = y }, q))) -> mem({ Tuple2_proj_1 = x; Tuple2_proj_2 = y
+  }, infix_lspl(q, r))))
+
+axiom function_overriding :
+  (forall s:'a set. forall t:'b set. forall f:('a, 'b) tuple2 set.
+  forall g:('a, 'b) tuple2 set. ((mem(f, infix_plmngt(s, t)) and mem(g,
+  infix_plmngt(s, t))) -> mem(infix_lspl(f, g), infix_plmngt(s, t))))
+
+axiom dom_overriding :
+  (forall f:('a, 'b) tuple2 set. forall g:('a, 'b) tuple2 set
+  [dom(infix_lspl(f, g))]. (dom(infix_lspl(f, g)) = union(dom(f), dom(g))))
+
+axiom apply_overriding_1 :
+  (forall s:'a set. forall t:'b set. forall f:('a, 'b) tuple2 set.
+  forall g:('a, 'b) tuple2 set. forall x:'a [mem(f, infix_plmngt(s, t)),
+  mem(g, infix_plmngt(s, t)), apply(infix_lspl(f, g), x)]. ((mem(f,
+  infix_plmngt(s, t)) and mem(g, infix_plmngt(s, t))) -> (mem(x, dom(g)) ->
+  (apply(infix_lspl(f, g), x) = apply(g, x)))))
+
+axiom apply_overriding_2 :
+  (forall s:'a set. forall t:'b set. forall f:('a, 'b) tuple2 set.
+  forall g:('a, 'b) tuple2 set. forall x:'a [mem(f, infix_plmngt(s, t)),
+  apply(infix_lspl(f, g), x)| mem(g, infix_plmngt(s, t)), apply(infix_lspl(f,
+  g), x)]. ((mem(f, infix_plmngt(s, t)) and mem(g, infix_plmngt(s, t))) ->
+  ((not mem(x, dom(g))) -> (mem(x, dom(f)) -> (apply(infix_lspl(f, g),
+  x) = apply(f, x))))))
+
+type uninterpreted_type
+
+type enum_ETAT_AUTOMATE = E_Traitement_carte | E_Traitement_code
+  | E_Traitement_somme | E_Distribution_billets | E_Restitution_carte
+  | E_Confiscation_carte | E_Veille
+
+logic match_enum_ETAT_AUTOMATE : enum_ETAT_AUTOMATE, 'a, 'a, 'a, 'a, 'a, 'a,
+  'a -> 'a
+
+axiom match_enum_ETAT_AUTOMATE_E_Traitement_carte :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. (match_enum_ETAT_AUTOMATE(E_Traitement_carte,
+  z, z1, z2, z3, z4, z5, z6) = z))
+
+axiom match_enum_ETAT_AUTOMATE_E_Traitement_code :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. (match_enum_ETAT_AUTOMATE(E_Traitement_code, z,
+  z1, z2, z3, z4, z5, z6) = z1))
+
+axiom match_enum_ETAT_AUTOMATE_E_Traitement_somme :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. (match_enum_ETAT_AUTOMATE(E_Traitement_somme,
+  z, z1, z2, z3, z4, z5, z6) = z2))
+
+axiom match_enum_ETAT_AUTOMATE_E_Distribution_billets :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a.
+  (match_enum_ETAT_AUTOMATE(E_Distribution_billets, z, z1, z2, z3, z4, z5,
+  z6) = z3))
+
+axiom match_enum_ETAT_AUTOMATE_E_Restitution_carte :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. (match_enum_ETAT_AUTOMATE(E_Restitution_carte,
+  z, z1, z2, z3, z4, z5, z6) = z4))
+
+axiom match_enum_ETAT_AUTOMATE_E_Confiscation_carte :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. (match_enum_ETAT_AUTOMATE(E_Confiscation_carte,
+  z, z1, z2, z3, z4, z5, z6) = z5))
+
+axiom match_enum_ETAT_AUTOMATE_E_Veille :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. (match_enum_ETAT_AUTOMATE(E_Veille, z, z1, z2,
+  z3, z4, z5, z6) = z6))
+
+logic set_enum_ETAT_AUTOMATE : enum_ETAT_AUTOMATE set
+
+axiom set_enum_ETAT_AUTOMATE_axiom :
+  (forall x:enum_ETAT_AUTOMATE. mem(x, set_enum_ETAT_AUTOMATE))
+
+type enum_ETAT_DAB = E_Hors_service | E_En_service
+
+logic match_enum_ETAT_DAB : enum_ETAT_DAB, 'a, 'a -> 'a
+
+axiom match_enum_ETAT_DAB_E_Hors_service :
+  (forall z:'a. forall z1:'a. (match_enum_ETAT_DAB(E_Hors_service, z,
+  z1) = z))
+
+axiom match_enum_ETAT_DAB_E_En_service :
+  (forall z:'a. forall z1:'a. (match_enum_ETAT_DAB(E_En_service, z,
+  z1) = z1))
+
+logic set_enum_ETAT_DAB : enum_ETAT_DAB set
+
+axiom set_enum_ETAT_DAB_axiom :
+  (forall x:enum_ETAT_DAB. mem(x, set_enum_ETAT_DAB))
+
+type enum_MESSAGE = E_Vide | E_En_panne | E_Veuillez_patienter
+  | E_Entrez_votre_carte | E_Entrez_votre_code | E_Nouvel_essai
+  | E_Dernier_essai | E_Entrez_somme | E_Prenez_vos_billets | E_Carte_perimee
+  | E_Carte_epuisee | E_Carte_invalide | E_Carte_interdite
+  | E_Caisse_insuffisante | E_Solde_insuffisant | E_Credit_insuffisant
+  | E_Billets_confisques | E_Retirez_votre_carte | E_Code_invalide
+  | E_Carte_confisquee | E_Merci_de_votre_visite
+
+logic match_enum_MESSAGE : enum_MESSAGE, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a,
+  'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a -> 'a
+
+axiom match_enum_MESSAGE_E_Vide :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Vide, z, z1, z2, z3, z4, z5, z6, z7,
+  z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20) = z))
+
+axiom match_enum_MESSAGE_E_En_panne :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_En_panne, z, z1, z2, z3, z4, z5, z6,
+  z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20) = z1))
+
+axiom match_enum_MESSAGE_E_Veuillez_patienter :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Veuillez_patienter, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z2))
+
+axiom match_enum_MESSAGE_E_Entrez_votre_carte :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Entrez_votre_carte, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z3))
+
+axiom match_enum_MESSAGE_E_Entrez_votre_code :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Entrez_votre_code, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z4))
+
+axiom match_enum_MESSAGE_E_Nouvel_essai :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Nouvel_essai, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z5))
+
+axiom match_enum_MESSAGE_E_Dernier_essai :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Dernier_essai, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z6))
+
+axiom match_enum_MESSAGE_E_Entrez_somme :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Entrez_somme, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z7))
+
+axiom match_enum_MESSAGE_E_Prenez_vos_billets :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Prenez_vos_billets, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z8))
+
+axiom match_enum_MESSAGE_E_Carte_perimee :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Carte_perimee, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z9))
+
+axiom match_enum_MESSAGE_E_Carte_epuisee :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Carte_epuisee, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z10))
+
+axiom match_enum_MESSAGE_E_Carte_invalide :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Carte_invalide, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z11))
+
+axiom match_enum_MESSAGE_E_Carte_interdite :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Carte_interdite, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z12))
+
+axiom match_enum_MESSAGE_E_Caisse_insuffisante :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Caisse_insuffisante, z, z1, z2, z3,
+  z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z13))
+
+axiom match_enum_MESSAGE_E_Solde_insuffisant :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Solde_insuffisant, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z14))
+
+axiom match_enum_MESSAGE_E_Credit_insuffisant :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Credit_insuffisant, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z15))
+
+axiom match_enum_MESSAGE_E_Billets_confisques :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Billets_confisques, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z16))
+
+axiom match_enum_MESSAGE_E_Retirez_votre_carte :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Retirez_votre_carte, z, z1, z2, z3,
+  z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z17))
+
+axiom match_enum_MESSAGE_E_Code_invalide :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Code_invalide, z, z1, z2, z3, z4, z5,
+  z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z18))
+
+axiom match_enum_MESSAGE_E_Carte_confisquee :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Carte_confisquee, z, z1, z2, z3, z4,
+  z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z19))
+
+axiom match_enum_MESSAGE_E_Merci_de_votre_visite :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  forall z10:'a. forall z11:'a. forall z12:'a. forall z13:'a. forall z14:'a.
+  forall z15:'a. forall z16:'a. forall z17:'a. forall z18:'a. forall z19:'a.
+  forall z20:'a. (match_enum_MESSAGE(E_Merci_de_votre_visite, z, z1, z2, z3,
+  z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19,
+  z20) = z20))
+
+logic set_enum_MESSAGE : enum_MESSAGE set
+
+axiom set_enum_MESSAGE_axiom :
+  (forall x:enum_MESSAGE. mem(x, set_enum_MESSAGE))
+
+type enum_STATUT = E_Valide | E_Invalide | E_Illisible | E_Interdite
+  | E_Perimee | E_Epuisee | E_Nouvel | E_Dernier | E_Hors_delai | E_Incident
+
+logic match_enum_STATUT : enum_STATUT, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a, 'a,
+  'a -> 'a
+
+axiom match_enum_STATUT_E_Valide :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Valide, z, z1, z2, z3, z4, z5, z6, z7, z8, z9) = z))
+
+axiom match_enum_STATUT_E_Invalide :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Invalide, z, z1, z2, z3, z4, z5, z6, z7, z8,
+  z9) = z1))
+
+axiom match_enum_STATUT_E_Illisible :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Illisible, z, z1, z2, z3, z4, z5, z6, z7, z8,
+  z9) = z2))
+
+axiom match_enum_STATUT_E_Interdite :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Interdite, z, z1, z2, z3, z4, z5, z6, z7, z8,
+  z9) = z3))
+
+axiom match_enum_STATUT_E_Perimee :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Perimee, z, z1, z2, z3, z4, z5, z6, z7, z8, z9) = z4))
+
+axiom match_enum_STATUT_E_Epuisee :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Epuisee, z, z1, z2, z3, z4, z5, z6, z7, z8, z9) = z5))
+
+axiom match_enum_STATUT_E_Nouvel :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Nouvel, z, z1, z2, z3, z4, z5, z6, z7, z8, z9) = z6))
+
+axiom match_enum_STATUT_E_Dernier :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Dernier, z, z1, z2, z3, z4, z5, z6, z7, z8, z9) = z7))
+
+axiom match_enum_STATUT_E_Hors_delai :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Hors_delai, z, z1, z2, z3, z4, z5, z6, z7, z8,
+  z9) = z8))
+
+axiom match_enum_STATUT_E_Incident :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. forall z6:'a. forall z7:'a. forall z8:'a. forall z9:'a.
+  (match_enum_STATUT(E_Incident, z, z1, z2, z3, z4, z5, z6, z7, z8,
+  z9) = z9))
+
+logic set_enum_STATUT : enum_STATUT set
+
+axiom set_enum_STATUT_axiom : (forall x:enum_STATUT. mem(x, set_enum_STATUT))
+
+predicate f2(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((((((((((mem(v_D_min,
+  integer) and (0 <= v_D_min)) and (v_D_min <= 2147483647)) and mem(v_D_max,
+  integer)) and (0 <= v_D_max)) and (v_D_max <= 2147483647)) and
+  ((v_D_min + 1) <= v_D_max)) and infix_eqeq(v_DATE, mk(v_D_min,
+  v_D_max))) and mem(v_K0, v_CARTE)) and mem(v_HS, v_CARTE)) and
+  (not (v_K0 = v_HS))) and mem(v_CARTE, finite_subsets(integer))) and
+  (not infix_eqeq(v_CARTE, (empty : int set))))
+
+predicate f3(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((((((((((((mem(v_K0, v_CARTE) and mem(v_HS, v_CARTE)) and
+  (not (v_K0 = v_HS))) and mem(v_CARTE, finite_subsets(integer))) and
+  (not infix_eqeq(v_CARTE, (empty : int set)))) and mem(v_date, v_DATE)) and
+  mem(v_carte_1, v_CARTE)) and mem(v_cde_carte_1, mk(0, 9999))) and
+  mem(v_date_validite_1, v_DATE)) and mem(v_caisse_1, integer)) and
+  (0 <= v_caisse_1)) and (v_caisse_1 <= 2147483647)) and mem(v_corbeille_1,
+  integer)) and (0 <= v_corbeille_1)) and mem(v_somme_distribuee_1,
+  integer)) and (0 <= v_somme_distribuee_1)) and mem(v_clients_1,
+  power(diff(v_CARTE, union(add(v_K0, (empty : int set)), add(v_HS,
+  (empty : int set))))))) and mem(v_comptes_1, infix_plmngt(v_clients_1,
+  nat))) and infix_eqeq(dom(v_comptes_1), v_clients_1)) and
+  mem(v_interdits_1, power(v_clients_1))) and mem(v_code_saisi_1, mk(0,
+  9999))) and mem(v_somme_1, mk(100, 900))) and mem(v_somme_maximum_1,
+  mk(100, 900)))
+
+predicate f4(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((((mem(v_cl,
+  power(diff(v_CARTE, union(add(v_K0, (empty : int set)), add(v_HS,
+  (empty : int set)))))) and mem(v_co, infix_plmngt(v_cl, nat))) and
+  infix_eqeq(dom(v_co), v_cl)) and mem(v_in, power(v_cl))) and mem(v_somme_2,
+  mk(100, 900))) and mem(v_somme_maximum_0, mk(100, 900)))
+
+predicate f7(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((((((((((((((((((((((((((((((((((mem(v_clients_1,
+  power(diff(v_CARTE, union(add(v_K0, (empty : int set)), add(v_HS,
+  (empty : int set)))))) and mem(v_comptes_1, infix_plmngt(v_clients_1,
+  nat))) and infix_eqeq(dom(v_comptes_1), v_clients_1)) and
+  mem(v_interdits_1, power(v_clients_1))) and mem(v_caisse_1, integer)) and
+  (0 <= v_caisse_1)) and (v_caisse_1 <= 2147483647)) and mem(v_corbeille_1,
+  integer)) and (0 <= v_corbeille_1)) and (v_corbeille_1 <= 2147483647)) and
+  mem(v_retraits_1, integer)) and (0 <= v_retraits_1)) and
+  (v_retraits_1 <= 2147483647)) and mem(v_carte_1, v_CARTE)) and
+  mem(v_code_CB, mk(0, 9999))) and mem(v_date_validite_1, v_DATE)) and
+  mem(v_date_mesure_1, v_DATE)) and mem(v_code_saisi_1, mk(0, 9999))) and
+  mem(v_somme_1, mk(100, 900))) and
+  mem(((v_caisse_1 + v_corbeille_1) + v_retraits_1), integer)) and
+  (0 <= ((v_caisse_1 + v_corbeille_1) + v_retraits_1))) and
+  (((v_caisse_1 + v_corbeille_1) + v_retraits_1) <= 2147483647)) and
+  mem(v_solde_1, integer)) and (0 <= v_solde_1)) and
+  (v_solde_1 <= 2147483647)) and (v_cde_carte_1 = v_code_CB)) and
+  (v_etat_clc_1 = v_code_demande)) and (v_etat_cls_1 = v_somme_demandee)) and
+  (((v_infos_lues_1 = true) and (mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1)))) -> (apply(v_comptes_1,
+  v_carte_1) = v_solde_1))) and ((((v_somme_demandee = true) and
+  (v_infos_lues_1 = true)) and (mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1)))) ->
+  (v_somme_maximum_1 <= v_solde_1))) and (v_infos_lues = v_infos_lues_1)) and
+  infix_eqeq(v_clients, v_clients_1)) and infix_eqeq(v_comptes,
+  v_comptes_1)) and infix_eqeq(v_interdits, v_interdits_1)) and
+  (v_caisse = v_caisse_1)) and (v_corbeille = v_corbeille_1)) and
+  (v_retraits = v_retraits_1)) and (v_carte = v_carte_1)) and
+  (v_date_validite = v_date_validite_1)) and
+  (v_date_mesure = v_date_mesure_1)) and (v_code_saisi = v_code_saisi_1)) and
+  (v_somme = v_somme_1)) and (v_message = v_message_1)) and
+  (v_essai_possible = v_essai_possible_1))
+
+predicate f8(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((v_infos_lues_1 = false) and (v_somme_demandee = false))
+
+predicate f9(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident)))
+
+predicate f13(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and (v_ctr = E_Valide)) and
+  mem(v_ctr_0, union(union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set))),
+  add(E_Interdite, (empty : enum_STATUT set))), add(E_Perimee,
+  (empty : enum_STATUT set))), add(E_Epuisee,
+  (empty : enum_STATUT set))))) and mem(v_sld, integer)) and
+  (0 <= v_sld)) and (v_sld <= 2147483647)) and ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and
+  (v_date <= v_date_validite_1)) -> (v_ctr_0 = E_Valide))) and
+  ((v_ctr_0 = E_Valide) -> (((mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1))) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_date <= v_date_validite_1)))) and ((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) ->
+  (v_sld = apply(v_comptes_1, v_carte_1))))
+
+predicate f16(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((((((((((((v_infos_lues_1 = false) and
+  (v_somme_demandee = false)) and mem(v_ctr, union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Incident, (empty : enum_STATUT set))),
+  add(E_Illisible, (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and (v_ctr = E_Valide)) and
+  mem(v_ctr_0, union(union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set))),
+  add(E_Interdite, (empty : enum_STATUT set))), add(E_Perimee,
+  (empty : enum_STATUT set))), add(E_Epuisee,
+  (empty : enum_STATUT set))))) and mem(v_sld, integer)) and
+  (0 <= v_sld)) and (v_sld <= 2147483647)) and ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and
+  (v_date <= v_date_validite_1)) -> (v_ctr_0 = E_Valide))) and
+  ((v_ctr_0 = E_Valide) -> (((mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1))) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_date <= v_date_validite_1)))) and ((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) ->
+  (v_sld = apply(v_comptes_1, v_carte_1)))) and
+  (not (v_ctr_0 = E_Invalide))) and (not (v_ctr_0 = E_Illisible))) and
+  (not (v_ctr_0 = E_Incident))) and mem(v_carte_1, v_clients_1)) and
+  (not mem(v_carte_1, v_interdits_1))) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_date <= v_date_validite_1))
+
+predicate f18(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and (v_ctr = E_Valide)) and
+  mem(v_ctr_0, union(union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set))),
+  add(E_Interdite, (empty : enum_STATUT set))), add(E_Perimee,
+  (empty : enum_STATUT set))), add(E_Epuisee,
+  (empty : enum_STATUT set))))) and mem(v_sld, integer)) and
+  (0 <= v_sld)) and (v_sld <= 2147483647)) and ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and
+  (v_date <= v_date_validite_1)) -> (v_ctr_0 = E_Valide))) and
+  ((v_ctr_0 = E_Valide) -> (((mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1))) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_date <= v_date_validite_1)))) and ((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) ->
+  (v_sld = apply(v_comptes_1, v_carte_1)))) and (v_ctr_0 = E_Valide))
+
+predicate f19(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_ctr_0 = E_Invalide))
+
+predicate f20(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_ctr_0 = E_Illisible))
+
+predicate f21(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_ctr_0 = E_Incident))
+
+predicate f22(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and (v_ctr = E_Valide)) and
+  mem(v_ctr_0, union(union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set))),
+  add(E_Interdite, (empty : enum_STATUT set))), add(E_Perimee,
+  (empty : enum_STATUT set))), add(E_Epuisee,
+  (empty : enum_STATUT set))))) and mem(v_sld, integer)) and
+  (0 <= v_sld)) and (v_sld <= 2147483647)) and ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and
+  (v_date <= v_date_validite_1)) -> (v_ctr_0 = E_Valide))) and
+  ((v_ctr_0 = E_Valide) -> (((mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1))) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_date <= v_date_validite_1)))) and ((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) ->
+  (v_sld = apply(v_comptes_1, v_carte_1)))) and (v_ctr_0 = E_Incident))
+
+predicate f24(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((((((((v_infos_lues_1 = false) and
+  (v_somme_demandee = false)) and mem(v_ctr, union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Incident, (empty : enum_STATUT set))),
+  add(E_Illisible, (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and (v_ctr = E_Valide)) and
+  mem(v_ctr_0, union(union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set))),
+  add(E_Interdite, (empty : enum_STATUT set))), add(E_Perimee,
+  (empty : enum_STATUT set))), add(E_Epuisee,
+  (empty : enum_STATUT set))))) and mem(v_sld, integer)) and
+  (0 <= v_sld)) and (v_sld <= 2147483647)) and ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and
+  (v_date <= v_date_validite_1)) -> (v_ctr_0 = E_Valide))) and
+  ((v_ctr_0 = E_Valide) -> (((mem(v_carte_1, v_clients_1) and
+  (not mem(v_carte_1, v_interdits_1))) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_date <= v_date_validite_1)))) and ((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) ->
+  (v_sld = apply(v_comptes_1, v_carte_1)))) and mem(v_carte_1,
+  v_clients_1)) and (not mem(v_carte_1, v_interdits_1)))
+
+predicate f26(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (apply(v_comptes_1,
+  v_carte_1) = v_sld)
+
+predicate f27(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and (not (v_ctr = E_Valide)))
+
+predicate f30(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and
+  (not (v_ctr = E_Valide))) and (not (v_ctr = E_Invalide))) and
+  (not (v_ctr = E_Illisible))) and (not (v_ctr = E_Incident))) and
+  mem(v_carte_1, v_clients_1)) and (not mem(v_carte_1, v_interdits_1))) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and (v_date <= v_date_validite_1))
+
+predicate f32(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((v_infos_lues_1 = false) and (v_somme_demandee = false)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Illisible,
+  (empty : enum_STATUT set))))) and ((v_ctr = E_Valide) ->
+  ((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)))) and
+  (((not (v_carte_1 = v_K0)) and (v_lisible_1 = true)) ->
+  (v_ctr = E_Valide))) and ((v_ctr = E_Incident) -> (v_carte_1 = v_K0))) and
+  ((v_carte_1 = v_K0) -> (v_ctr = E_Incident))) and
+  (not (v_ctr = E_Valide))) and (not (v_ctr = E_Illisible))) and
+  (not (v_ctr = E_Incident)))
+
+predicate f34(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_date_mesure_1 <= v_date_validite_1)) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and mem(v_d_etat, union(add(E_Traitement_carte,
+  (empty : enum_ETAT_AUTOMATE set)), add(E_Traitement_code,
+  (empty : enum_ETAT_AUTOMATE set))))) and ((v_d_etat = E_Traitement_code) ->
+  (mem(v_d_rslt, union(add(E_Nouvel, (empty : enum_STATUT set)),
+  add(E_Dernier, (empty : enum_STATUT set)))) and
+  (v_essai_possible_1 = true)))) and ((v_d_etat = E_Traitement_carte) ->
+  (v_d_rslt = E_Valide))) and (v_code_demande = false)) and
+  (v_somme_demandee = false)) and (v_infos_lues_1 = true))
+
+predicate f35(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((mem(v_carte_1, v_clients_1) and (not mem(v_carte_1,
+  v_interdits_1))) and (v_date_mesure_1 <= v_date_validite_1)) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and mem(v_d_etat,
+  union(add(E_Traitement_carte, (empty : enum_ETAT_AUTOMATE set)),
+  add(E_Traitement_code, (empty : enum_ETAT_AUTOMATE set))))) and
+  ((v_d_etat = E_Traitement_code) -> (mem(v_d_rslt, union(add(E_Nouvel,
+  (empty : enum_STATUT set)), add(E_Dernier, (empty : enum_STATUT set)))) and
+  (v_essai_possible_1 = true)))) and ((v_d_etat = E_Traitement_carte) ->
+  (v_d_rslt = E_Valide))) and (v_code_demande = false)) and
+  (v_somme_demandee = false)) and (v_infos_lues_1 = true)) and
+  ((v_d_etat = E_Traitement_carte) -> (v_n_msg = E_Entrez_votre_code))) and
+  ((v_d_etat = E_Traitement_code) -> (((v_d_rslt = E_Nouvel) ->
+  (v_n_msg = E_Nouvel_essai)) and ((v_d_rslt = E_Dernier) ->
+  (v_n_msg = E_Dernier_essai))))) and (v_d_etat = E_Traitement_carte))
+
+predicate f37(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((mem(v_carte_1, v_clients_1) and (not mem(v_carte_1,
+  v_interdits_1))) and (v_date_mesure_1 <= v_date_validite_1)) and
+  (100 <= apply(v_comptes_1, v_carte_1))) and mem(v_d_etat,
+  union(add(E_Traitement_carte, (empty : enum_ETAT_AUTOMATE set)),
+  add(E_Traitement_code, (empty : enum_ETAT_AUTOMATE set))))) and
+  ((v_d_etat = E_Traitement_code) -> (mem(v_d_rslt, union(add(E_Nouvel,
+  (empty : enum_STATUT set)), add(E_Dernier, (empty : enum_STATUT set)))) and
+  (v_essai_possible_1 = true)))) and ((v_d_etat = E_Traitement_carte) ->
+  (v_d_rslt = E_Valide))) and (v_code_demande = false)) and
+  (v_somme_demandee = false)) and (v_infos_lues_1 = true)) and
+  ((v_d_etat = E_Traitement_carte) -> (v_n_msg = E_Entrez_votre_code))) and
+  ((v_d_etat = E_Traitement_code) -> (((v_d_rslt = E_Nouvel) ->
+  (v_n_msg = E_Nouvel_essai)) and ((v_d_rslt = E_Dernier) ->
+  (v_n_msg = E_Dernier_essai))))) and (not (v_d_etat = E_Traitement_carte)))
+
+predicate f39(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((v_code_demande = true) and (v_essai_possible_1 = true))
+
+predicate f40(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((v_code_demande = true) and (v_essai_possible_1 = true))
+
+predicate f42(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((v_code_demande = true) and (v_essai_possible_1 = true)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Hors_delai, (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_code_saisi_2, mk(0, 9999))) and
+  (v_ctr = E_Valide)) and mem(v_ctrl, union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Nouvel, (empty : enum_STATUT set))),
+  add(E_Dernier, (empty : enum_STATUT set))), add(E_Invalide,
+  (empty : enum_STATUT set))))) and ((v_ctrl = E_Valide) ->
+  (v_cde_carte_1 = v_code_saisi_2))) and ((v_cde_carte_1 = v_code_saisi_2) ->
+  (v_ctrl = E_Valide))) and ((v_ctrl = E_Invalide) ->
+  (v_essaip = false))) and (mem(v_ctrl, union(add(E_Nouvel,
+  (empty : enum_STATUT set)), add(E_Dernier, (empty : enum_STATUT set)))) ->
+  (v_essaip = true)))
+
+predicate f44(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((((v_code_demande = true) and (v_essai_possible_1 = true)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Hors_delai, (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_code_saisi_2, mk(0, 9999))) and
+  (v_ctr = E_Valide)) and mem(v_ctrl, union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Nouvel, (empty : enum_STATUT set))),
+  add(E_Dernier, (empty : enum_STATUT set))), add(E_Invalide,
+  (empty : enum_STATUT set))))) and ((v_ctrl = E_Valide) ->
+  (v_cde_carte_1 = v_code_saisi_2))) and ((v_cde_carte_1 = v_code_saisi_2) ->
+  (v_ctrl = E_Valide))) and ((v_ctrl = E_Invalide) ->
+  (v_essaip = false))) and (mem(v_ctrl, union(add(E_Nouvel,
+  (empty : enum_STATUT set)), add(E_Dernier, (empty : enum_STATUT set)))) ->
+  (v_essaip = true))) and (v_code_CB = v_code_saisi_2)) and
+  (not (v_ctrl = E_Hors_delai))) and (not (v_ctrl = E_Incident)))
+
+predicate f46(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((v_code_demande = true) and (v_essai_possible_1 = true)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Hors_delai, (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_code_saisi_2, mk(0, 9999))) and
+  (v_ctr = E_Valide)) and mem(v_ctrl, union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Nouvel, (empty : enum_STATUT set))),
+  add(E_Dernier, (empty : enum_STATUT set))), add(E_Invalide,
+  (empty : enum_STATUT set))))) and ((v_ctrl = E_Valide) ->
+  (v_cde_carte_1 = v_code_saisi_2))) and ((v_cde_carte_1 = v_code_saisi_2) ->
+  (v_ctrl = E_Valide))) and ((v_ctrl = E_Invalide) ->
+  (v_essaip = false))) and (mem(v_ctrl, union(add(E_Nouvel,
+  (empty : enum_STATUT set)), add(E_Dernier, (empty : enum_STATUT set)))) ->
+  (v_essaip = true))) and (v_ctrl = E_Valide))
+
+predicate f48(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_ctrl = E_Hors_delai))
+
+predicate f49(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_ctrl = E_Incident))
+
+predicate f50(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((v_code_demande = true) and (v_essai_possible_1 = true)) and mem(v_ctr,
+  union(union(add(E_Valide, (empty : enum_STATUT set)), add(E_Hors_delai,
+  (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_code_saisi_2, mk(0, 9999))) and
+  (not (v_ctr = E_Valide)))
+
+predicate f53(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((v_code_demande = true) and (v_essai_possible_1 = true)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Hors_delai, (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_code_saisi_2, mk(0, 9999))) and
+  (not (v_ctr = E_Valide))) and (v_code_CB = v_code_saisi_2)) and
+  (not (v_ctr = E_Hors_delai))) and (not (v_ctr = E_Incident)))
+
+predicate f54(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((v_code_demande = true) and (v_essai_possible_1 = true)) and
+  mem(v_ctr, union(union(add(E_Valide, (empty : enum_STATUT set)),
+  add(E_Hors_delai, (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_code_saisi_2, mk(0, 9999))) and
+  (not (v_ctr = E_Valide))) and (v_ctr = E_Invalide))
+
+predicate f56(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_date_mesure_1 <= v_date_validite_1)) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_somme_demandee = false)) and
+  (v_code_demande = false)) and (v_infos_lues_1 = true))
+
+predicate f57(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_date_mesure_1 <= v_date_validite_1)) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_somme_demandee = false)) and
+  (v_code_demande = false)) and (v_infos_lues_1 = true)) and
+  ((v_solde_1 + 1) <= 900))
+
+predicate f60(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_date_mesure_1 <= v_date_validite_1)) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_somme_demandee = false)) and
+  (v_code_demande = false)) and (v_infos_lues_1 = true)) and
+  (not ((v_solde_1 + 1) <= 900)))
+
+predicate f62(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_date_mesure_1 <= v_date_validite_1)) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_somme_demandee = false)) and
+  (v_code_demande = false)) and (v_infos_lues_1 = true)) and
+  ((v_solde_1 + 1) <= 900)) and mem(v_solde_1, mk(100, 900)))
+
+predicate f64(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (v_solde_1 <= v_solde_1)
+
+predicate f65(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_date_mesure_1 <= v_date_validite_1)) and (100 <= apply(v_comptes_1,
+  v_carte_1))) and (v_somme_demandee = false)) and
+  (v_code_demande = false)) and (v_infos_lues_1 = true)) and
+  (not ((v_solde_1 + 1) <= 900))) and mem(900, mk(100, 900)))
+
+predicate f67(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_somme_demandee = true)) and (v_infos_lues_1 = true))
+
+predicate f68(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_somme_demandee = true)) and (v_infos_lues_1 = true))
+
+predicate f70(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_somme_demandee = true)) and (v_infos_lues_1 = true)) and mem(v_ctr,
+  union(union(add(E_Valide, (empty : enum_STATUT set)), add(E_Hors_delai,
+  (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_som, mk(100, 900))) and
+  ((v_ctr = E_Valide) -> (v_som <= v_somme_maximum_1))) and
+  (v_ctr = E_Valide)) and mem(v_rsl, union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide,
+  (empty : enum_STATUT set))))) and ((v_som <= v_caisse_1) ->
+  (v_rsl = E_Valide))) and (((v_caisse_1 + 1) <= v_som) ->
+  (v_rsl = E_Invalide)))
+
+predicate f72(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((mem(v_carte_1, v_clients_1) and (not mem(v_carte_1,
+  v_interdits_1))) and (v_somme_demandee = true)) and
+  (v_infos_lues_1 = true)) and mem(v_ctr, union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Hors_delai, (empty : enum_STATUT set))),
+  add(E_Incident, (empty : enum_STATUT set))))) and mem(v_som, mk(100,
+  900))) and ((v_ctr = E_Valide) -> (v_som <= v_somme_maximum_1))) and
+  (v_ctr = E_Valide)) and mem(v_rsl, union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide,
+  (empty : enum_STATUT set))))) and ((v_som <= v_caisse_1) ->
+  (v_rsl = E_Valide))) and (((v_caisse_1 + 1) <= v_som) ->
+  (v_rsl = E_Invalide))) and (v_rsl = E_Valide))
+
+predicate f73(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_rsl = E_Hors_delai))
+
+predicate f74(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (not (v_rsl = E_Incident))
+
+predicate f75(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (v_som <= apply(v_comptes_1, v_carte_1))
+
+predicate f77(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and
+  (v_somme_demandee = true)) and (v_infos_lues_1 = true)) and mem(v_ctr,
+  union(union(add(E_Valide, (empty : enum_STATUT set)), add(E_Hors_delai,
+  (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and mem(v_som, mk(100, 900))) and
+  ((v_ctr = E_Valide) -> (v_som <= v_somme_maximum_1))) and
+  (not (v_ctr = E_Valide)))
+
+predicate f79(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((mem(v_carte_1, v_clients_1) and (not mem(v_carte_1,
+  v_interdits_1))) and (v_somme_demandee = true)) and
+  (v_infos_lues_1 = true)) and mem(v_ctr, union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Hors_delai, (empty : enum_STATUT set))),
+  add(E_Incident, (empty : enum_STATUT set))))) and mem(v_som, mk(100,
+  900))) and ((v_ctr = E_Valide) -> (v_som <= v_somme_maximum_1))) and
+  (not (v_ctr = E_Valide))) and (not (v_ctr = E_Hors_delai))) and
+  (not (v_ctr = E_Incident))) and (v_som <= apply(v_comptes_1,
+  v_carte_1))) and (v_som <= v_caisse_1))
+
+predicate f80(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and mem(v_somme_1,
+  mk(100, 900))) and (v_somme_1 <= apply(v_comptes_1, v_carte_1))) and
+  (v_somme_1 <= v_caisse_1))
+
+predicate f81(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and mem(v_somme_1,
+  mk(100, 900))) and (v_somme_1 <= apply(v_comptes_1, v_carte_1))) and
+  (v_somme_1 <= v_caisse_1))
+
+predicate f85(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (not (v_somme_1 = 0))
+
+predicate f86(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((((((((mem(v_carte_1,
+  v_clients_1) and (not mem(v_carte_1, v_interdits_1))) and mem(v_somme_1,
+  mk(100, 900))) and (v_somme_1 <= apply(v_comptes_1, v_carte_1))) and
+  (v_somme_1 <= v_caisse_1)) and mem(v_somme_2, union(add(0,
+  (empty : int set)), add(v_somme_1, (empty : int set))))) and mem(v_ctr_2,
+  union(union(add(E_Valide, (empty : enum_STATUT set)), add(E_Hors_delai,
+  (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and ((v_ctr_2 = E_Valide) ->
+  (v_somme_2 = 0))) and ((v_ctr_2 = E_Hors_delai) ->
+  (v_somme_2 = v_somme_1))) and (v_somme_2 = 0))
+
+predicate f87(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  mem((v_retraits_1 + v_somme_1), integer)
+
+predicate f88(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((v_retraits_1 + v_somme_1) <= 2147483647)
+
+predicate f89(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((-2147483647) <= (v_retraits_1 + v_somme_1))
+
+predicate f92(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((((((((((((((mem(v_carte_1, v_clients_1) and (not mem(v_carte_1,
+  v_interdits_1))) and mem(v_somme_1, mk(100, 900))) and
+  (v_somme_1 <= apply(v_comptes_1, v_carte_1))) and
+  (v_somme_1 <= v_caisse_1)) and mem(v_somme_2, union(add(0,
+  (empty : int set)), add(v_somme_1, (empty : int set))))) and mem(v_ctr_2,
+  union(union(add(E_Valide, (empty : enum_STATUT set)), add(E_Hors_delai,
+  (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and ((v_ctr_2 = E_Valide) ->
+  (v_somme_2 = 0))) and ((v_ctr_2 = E_Hors_delai) ->
+  (v_somme_2 = v_somme_1))) and (v_somme_2 = 0)) and
+  mem((v_caisse_1 - v_somme_1), integer)) and
+  (0 <= (v_caisse_1 - v_somme_1))) and
+  ((v_caisse_1 - v_somme_1) <= 2147483647)) and mem(v_somme_2, integer)) and
+  (0 <= v_somme_2)) and mem(infix_lspl(v_comptes_1, add({ Tuple2_proj_1 =
+  v_carte_1; Tuple2_proj_2 = (apply(v_comptes_1, v_carte_1) - v_somme_1) },
+  (empty : (int, int) tuple2 set))), infix_plmngt(v_clients_1, nat))) and
+  infix_eqeq(dom(infix_lspl(v_comptes_1, add({ Tuple2_proj_1 = v_carte_1;
+  Tuple2_proj_2 = (apply(v_comptes_1, v_carte_1) - v_somme_1) },
+  (empty : (int, int) tuple2 set)))), v_clients_1))
+
+predicate f94(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (exists v_rjt1:int. ((((mem(v_rjt1, union(add(0, (empty : int set)),
+  add(v_somme_1, (empty : int set)))) and ((v_ctr_2 = E_Valide) ->
+  (v_rjt1 = 0))) and ((v_ctr_2 = E_Hors_delai) -> (v_rjt1 = v_somme_1))) and
+  (v_corbeille_1 = (v_corbeille_1 + v_rjt1))) and
+  ((v_retraits_1 + v_somme_1) = ((v_retraits_1 + v_somme_1) - v_rjt1))))
+
+predicate f96(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (0 <= (v_retraits_1 + v_somme_1))
+
+predicate f97(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (((((((((((((((((mem(v_carte_1, v_clients_1) and (not mem(v_carte_1,
+  v_interdits_1))) and mem(v_somme_1, mk(100, 900))) and
+  (v_somme_1 <= apply(v_comptes_1, v_carte_1))) and
+  (v_somme_1 <= v_caisse_1)) and mem(v_somme_2, union(add(0,
+  (empty : int set)), add(v_somme_1, (empty : int set))))) and mem(v_ctr_2,
+  union(union(add(E_Valide, (empty : enum_STATUT set)), add(E_Hors_delai,
+  (empty : enum_STATUT set))), add(E_Incident,
+  (empty : enum_STATUT set))))) and ((v_ctr_2 = E_Valide) ->
+  (v_somme_2 = 0))) and ((v_ctr_2 = E_Hors_delai) ->
+  (v_somme_2 = v_somme_1))) and (not (v_somme_2 = 0))) and
+  mem((v_caisse_1 - v_somme_1), integer)) and
+  (0 <= (v_caisse_1 - v_somme_1))) and
+  ((v_caisse_1 - v_somme_1) <= 2147483647)) and
+  mem((v_corbeille_1 + v_somme_2), integer)) and
+  (0 <= (v_corbeille_1 + v_somme_2))) and mem(0, integer)) and
+  mem(infix_lspl(v_comptes_1, add({ Tuple2_proj_1 = v_carte_1;
+  Tuple2_proj_2 = (apply(v_comptes_1, v_carte_1) - v_somme_1) },
+  (empty : (int, int) tuple2 set))), infix_plmngt(v_clients_1, nat))) and
+  infix_eqeq(dom(infix_lspl(v_comptes_1, add({ Tuple2_proj_1 = v_carte_1;
+  Tuple2_proj_2 = (apply(v_comptes_1, v_carte_1) - v_somme_1) },
+  (empty : (int, int) tuple2 set)))), v_clients_1))
+
+predicate f98(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (exists v_rjt1:int. ((((mem(v_rjt1, union(add(0, (empty : int set)),
+  add(v_somme_1, (empty : int set)))) and ((v_ctr_2 = E_Valide) ->
+  (v_rjt1 = 0))) and ((v_ctr_2 = E_Hors_delai) -> (v_rjt1 = v_somme_1))) and
+  ((v_corbeille_1 + v_somme_2) = (v_corbeille_1 + v_rjt1))) and
+  (v_retraits_1 = ((v_retraits_1 + v_somme_1) - v_rjt1))))
+
+predicate f99(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (v_carte_1 = v_K0)
+
+predicate f100(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  ((((v_carte_1 = v_K0) and mem(v_rslt_0, union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Hors_delai, (empty : enum_STATUT set))),
+  add(E_Incident, (empty : enum_STATUT set))))) and
+  (v_rslt_0 = E_Valide)) and mem(v_rslt_0, union(add(E_Hors_delai,
+  (empty : enum_STATUT set)), add(E_Incident, (empty : enum_STATUT set)))))
+
+predicate f102(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = mem(v_rslt_0,
+  union(add(E_Valide, (empty : enum_STATUT set)), add(E_Invalide,
+  (empty : enum_STATUT set))))
+
+predicate f103(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) =
+  (exists v_ctrl1:enum_STATUT. mem(v_ctrl1, union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set)))))
+
+predicate f104(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (((mem(v_rslt_0,
+  union(add(E_Valide, (empty : enum_STATUT set)), add(E_Invalide,
+  (empty : enum_STATUT set)))) and mem(v_K0, v_clients_1)) and (not mem(v_K0,
+  v_interdits_1))) and (v_infos_lues_1 = true))
+
+predicate f105(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (apply(v_comptes_1,
+  v_K0) = v_solde_1)
+
+predicate f106(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((mem(v_rslt_0,
+  union(add(E_Valide, (empty : enum_STATUT set)), add(E_Invalide,
+  (empty : enum_STATUT set)))) and (v_somme_demandee = true)) and mem(v_K0,
+  v_clients_1)) and (not mem(v_K0, v_interdits_1))) and
+  (v_infos_lues_1 = true))
+
+predicate f108(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((mem(v_eta_cour,
+  union(union(union(union(union(add(E_Traitement_carte,
+  (empty : enum_ETAT_AUTOMATE set)), add(E_Traitement_code,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Traitement_somme,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Distribution_billets,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Restitution_carte,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Confiscation_carte,
+  (empty : enum_ETAT_AUTOMATE set)))) and (mem(v_eta_cour,
+  union(union(union(add(E_Restitution_carte,
+  (empty : enum_ETAT_AUTOMATE set)), add(E_Traitement_code,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Traitement_somme,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Distribution_billets,
+  (empty : enum_ETAT_AUTOMATE set)))) -> (not (v_carte_1 = v_K0)))) and
+  ((v_eta_cour = E_Traitement_carte) -> (v_carte_1 = v_K0)))
+
+predicate f109(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((((mem(v_eta_cour,
+  union(union(union(union(union(add(E_Traitement_carte,
+  (empty : enum_ETAT_AUTOMATE set)), add(E_Traitement_code,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Traitement_somme,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Distribution_billets,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Restitution_carte,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Confiscation_carte,
+  (empty : enum_ETAT_AUTOMATE set)))) and (mem(v_eta_cour,
+  union(union(union(add(E_Restitution_carte,
+  (empty : enum_ETAT_AUTOMATE set)), add(E_Traitement_code,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Traitement_somme,
+  (empty : enum_ETAT_AUTOMATE set))), add(E_Distribution_billets,
+  (empty : enum_ETAT_AUTOMATE set)))) -> (not (v_carte_1 = v_K0)))) and
+  ((v_eta_cour = E_Traitement_carte) -> (v_carte_1 = v_K0))) and
+  (not (v_eta_cour = E_Confiscation_carte))) and
+  (not (v_eta_cour = E_Traitement_carte)))
+
+predicate f110(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (not (v_carte_1 = v_K0))
+
+predicate f111(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = ((mem(v_HS,
+  v_clients_1) and (not mem(v_HS, v_interdits_1))) and
+  (v_infos_lues_1 = true))
+
+predicate f112(v_somme_maximum_1: int, v_somme_maximum_0: int,
+  v_somme_maximum: int, v_somme_distribuee_1: int, v_somme_distribuee: int,
+  v_somme_demandee: bool, v_somme_2: int, v_somme_1: int, v_somme: int,
+  v_som: int, v_solde_1: int, v_solde: int, v_sld: int,
+  v_rslt_0: enum_STATUT, v_rsl: enum_STATUT, v_rjt: int, v_retraits_1: int,
+  v_retraits: int, v_n_msg: enum_MESSAGE, v_message_1: enum_MESSAGE,
+  v_message: enum_MESSAGE, v_lisible_1: bool, v_lisible: bool,
+  v_interdits_1: int set, v_interdits: int set, v_infos_lues_1: bool,
+  v_infos_lues: bool, v_in: int set, v_etat_cls_1: bool, v_etat_cls: bool,
+  v_etat_clc_1: bool, v_etat_clc: bool, v_eta_cour: enum_ETAT_AUTOMATE,
+  v_essaip: bool, v_essai_possible_1: bool, v_essai_possible: bool,
+  v_date_validite_1: int, v_date_validite: int, v_date_mesure_1: int,
+  v_date_mesure: int, v_date: int, v_d_rslt: enum_STATUT,
+  v_d_etat: enum_ETAT_AUTOMATE, v_ctrl: enum_STATUT, v_ctr_2: enum_STATUT,
+  v_ctr_0: enum_STATUT, v_ctr: enum_STATUT, v_corbeille_1: int,
+  v_corbeille: int, v_comptes_1: (int, int) tuple2 set, v_comptes: (int,
+  int) tuple2 set, v_code_saisi_2: int, v_code_saisi_1: int,
+  v_code_saisi: int, v_code_demande: bool, v_code_CB: int, v_co: (int,
+  int) tuple2 set, v_clients_1: int set, v_clients: int set, v_cl: int set,
+  v_cde_carte_1: int, v_cde_carte: int, v_carte_1: int, v_carte: int,
+  v_caisse_1: int, v_caisse: int, v_K0: int, v_HS: int, v_D_min: int,
+  v_D_max: int, v_DATE: int set, v_CARTE: int set) = (apply(v_comptes_1,
+  v_HS) = v_solde_1)
+
+goal controler_carte_13 :
+  (forall v_somme_maximum_1:int. forall v_somme_maximum_0:int.
+  forall v_somme_maximum:int. forall v_somme_distribuee_1:int.
+  forall v_somme_distribuee:int. forall v_somme_demandee:bool.
+  forall v_somme_2:int. forall v_somme_1:int. forall v_somme:int.
+  forall v_som:int. forall v_solde_1:int. forall v_solde:int.
+  forall v_sld:int. forall v_rslt_0:enum_STATUT. forall v_rsl:enum_STATUT.
+  forall v_rjt:int. forall v_retraits_1:int. forall v_retraits:int.
+  forall v_n_msg:enum_MESSAGE. forall v_message_1:enum_MESSAGE.
+  forall v_message:enum_MESSAGE. forall v_lisible_1:bool.
+  forall v_lisible:bool. forall v_interdits_1:int set.
+  forall v_interdits:int set. forall v_infos_lues_1:bool.
+  forall v_infos_lues:bool. forall v_in:int set. forall v_etat_cls_1:bool.
+  forall v_etat_cls:bool. forall v_etat_clc_1:bool. forall v_etat_clc:bool.
+  forall v_eta_cour:enum_ETAT_AUTOMATE. forall v_essaip:bool.
+  forall v_essai_possible_1:bool. forall v_essai_possible:bool.
+  forall v_date_validite_1:int. forall v_date_validite:int.
+  forall v_date_mesure_1:int. forall v_date_mesure:int. forall v_date:int.
+  forall v_d_rslt:enum_STATUT. forall v_d_etat:enum_ETAT_AUTOMATE.
+  forall v_ctrl:enum_STATUT. forall v_ctr_2:enum_STATUT.
+  forall v_ctr_0:enum_STATUT. forall v_ctr:enum_STATUT.
+  forall v_corbeille_1:int. forall v_corbeille:int. forall v_comptes_1:(int,
+  int) tuple2 set. forall v_comptes:(int, int) tuple2 set.
+  forall v_code_saisi_2:int. forall v_code_saisi_1:int.
+  forall v_code_saisi:int. forall v_code_demande:bool. forall v_code_CB:int.
+  forall v_co:(int, int) tuple2 set. forall v_clients_1:int set.
+  forall v_clients:int set. forall v_cl:int set. forall v_cde_carte_1:int.
+  forall v_cde_carte:int. forall v_carte_1:int. forall v_carte:int.
+  forall v_caisse_1:int. forall v_caisse:int. forall v_K0:int.
+  forall v_HS:int. forall v_D_min:int. forall v_D_max:int.
+  forall v_DATE:int set. forall v_CARTE:int set. ((f2(v_somme_maximum_1,
+  v_somme_maximum_0, v_somme_maximum, v_somme_distribuee_1,
+  v_somme_distribuee, v_somme_demandee, v_somme_2, v_somme_1, v_somme, v_som,
+  v_solde_1, v_solde, v_sld, v_rslt_0, v_rsl, v_rjt, v_retraits_1,
+  v_retraits, v_n_msg, v_message_1, v_message, v_lisible_1, v_lisible,
+  v_interdits_1, v_interdits, v_infos_lues_1, v_infos_lues, v_in,
+  v_etat_cls_1, v_etat_cls, v_etat_clc_1, v_etat_clc, v_eta_cour, v_essaip,
+  v_essai_possible_1, v_essai_possible, v_date_validite_1, v_date_validite,
+  v_date_mesure_1, v_date_mesure, v_date, v_d_rslt, v_d_etat, v_ctrl,
+  v_ctr_2, v_ctr_0, v_ctr, v_corbeille_1, v_corbeille, v_comptes_1,
+  v_comptes, v_code_saisi_2, v_code_saisi_1, v_code_saisi, v_code_demande,
+  v_code_CB, v_co, v_clients_1, v_clients, v_cl, v_cde_carte_1, v_cde_carte,
+  v_carte_1, v_carte, v_caisse_1, v_caisse, v_K0, v_HS, v_D_min, v_D_max,
+  v_DATE, v_CARTE) and (f3(v_somme_maximum_1, v_somme_maximum_0,
+  v_somme_maximum, v_somme_distribuee_1, v_somme_distribuee,
+  v_somme_demandee, v_somme_2, v_somme_1, v_somme, v_som, v_solde_1, v_solde,
+  v_sld, v_rslt_0, v_rsl, v_rjt, v_retraits_1, v_retraits, v_n_msg,
+  v_message_1, v_message, v_lisible_1, v_lisible, v_interdits_1, v_interdits,
+  v_infos_lues_1, v_infos_lues, v_in, v_etat_cls_1, v_etat_cls, v_etat_clc_1,
+  v_etat_clc, v_eta_cour, v_essaip, v_essai_possible_1, v_essai_possible,
+  v_date_validite_1, v_date_validite, v_date_mesure_1, v_date_mesure, v_date,
+  v_d_rslt, v_d_etat, v_ctrl, v_ctr_2, v_ctr_0, v_ctr, v_corbeille_1,
+  v_corbeille, v_comptes_1, v_comptes, v_code_saisi_2, v_code_saisi_1,
+  v_code_saisi, v_code_demande, v_code_CB, v_co, v_clients_1, v_clients,
+  v_cl, v_cde_carte_1, v_cde_carte, v_carte_1, v_carte, v_caisse_1, v_caisse,
+  v_K0, v_HS, v_D_min, v_D_max, v_DATE, v_CARTE) and (f7(v_somme_maximum_1,
+  v_somme_maximum_0, v_somme_maximum, v_somme_distribuee_1,
+  v_somme_distribuee, v_somme_demandee, v_somme_2, v_somme_1, v_somme, v_som,
+  v_solde_1, v_solde, v_sld, v_rslt_0, v_rsl, v_rjt, v_retraits_1,
+  v_retraits, v_n_msg, v_message_1, v_message, v_lisible_1, v_lisible,
+  v_interdits_1, v_interdits, v_infos_lues_1, v_infos_lues, v_in,
+  v_etat_cls_1, v_etat_cls, v_etat_clc_1, v_etat_clc, v_eta_cour, v_essaip,
+  v_essai_possible_1, v_essai_possible, v_date_validite_1, v_date_validite,
+  v_date_mesure_1, v_date_mesure, v_date, v_d_rslt, v_d_etat, v_ctrl,
+  v_ctr_2, v_ctr_0, v_ctr, v_corbeille_1, v_corbeille, v_comptes_1,
+  v_comptes, v_code_saisi_2, v_code_saisi_1, v_code_saisi, v_code_demande,
+  v_code_CB, v_co, v_clients_1, v_clients, v_cl, v_cde_carte_1, v_cde_carte,
+  v_carte_1, v_carte, v_caisse_1, v_caisse, v_K0, v_HS, v_D_min, v_D_max,
+  v_DATE, v_CARTE) and (f8(v_somme_maximum_1, v_somme_maximum_0,
+  v_somme_maximum, v_somme_distribuee_1, v_somme_distribuee,
+  v_somme_demandee, v_somme_2, v_somme_1, v_somme, v_som, v_solde_1, v_solde,
+  v_sld, v_rslt_0, v_rsl, v_rjt, v_retraits_1, v_retraits, v_n_msg,
+  v_message_1, v_message, v_lisible_1, v_lisible, v_interdits_1, v_interdits,
+  v_infos_lues_1, v_infos_lues, v_in, v_etat_cls_1, v_etat_cls, v_etat_clc_1,
+  v_etat_clc, v_eta_cour, v_essaip, v_essai_possible_1, v_essai_possible,
+  v_date_validite_1, v_date_validite, v_date_mesure_1, v_date_mesure, v_date,
+  v_d_rslt, v_d_etat, v_ctrl, v_ctr_2, v_ctr_0, v_ctr, v_corbeille_1,
+  v_corbeille, v_comptes_1, v_comptes, v_code_saisi_2, v_code_saisi_1,
+  v_code_saisi, v_code_demande, v_code_CB, v_co, v_clients_1, v_clients,
+  v_cl, v_cde_carte_1, v_cde_carte, v_carte_1, v_carte, v_caisse_1, v_caisse,
+  v_K0, v_HS, v_D_min, v_D_max, v_DATE, v_CARTE) and f27(v_somme_maximum_1,
+  v_somme_maximum_0, v_somme_maximum, v_somme_distribuee_1,
+  v_somme_distribuee, v_somme_demandee, v_somme_2, v_somme_1, v_somme, v_som,
+  v_solde_1, v_solde, v_sld, v_rslt_0, v_rsl, v_rjt, v_retraits_1,
+  v_retraits, v_n_msg, v_message_1, v_message, v_lisible_1, v_lisible,
+  v_interdits_1, v_interdits, v_infos_lues_1, v_infos_lues, v_in,
+  v_etat_cls_1, v_etat_cls, v_etat_clc_1, v_etat_clc, v_eta_cour, v_essaip,
+  v_essai_possible_1, v_essai_possible, v_date_validite_1, v_date_validite,
+  v_date_mesure_1, v_date_mesure, v_date, v_d_rslt, v_d_etat, v_ctrl,
+  v_ctr_2, v_ctr_0, v_ctr, v_corbeille_1, v_corbeille, v_comptes_1,
+  v_comptes, v_code_saisi_2, v_code_saisi_1, v_code_saisi, v_code_demande,
+  v_code_CB, v_co, v_clients_1, v_clients, v_cl, v_cde_carte_1, v_cde_carte,
+  v_carte_1, v_carte, v_caisse_1, v_caisse, v_K0, v_HS, v_D_min, v_D_max,
+  v_DATE, v_CARTE))))) -> mem(v_ctr,
+  union(union(union(union(union(union(add(E_Valide,
+  (empty : enum_STATUT set)), add(E_Invalide, (empty : enum_STATUT set))),
+  add(E_Illisible, (empty : enum_STATUT set))), add(E_Interdite,
+  (empty : enum_STATUT set))), add(E_Perimee, (empty : enum_STATUT set))),
+  add(E_Incident, (empty : enum_STATUT set))), add(E_Epuisee,
+  (empty : enum_STATUT set))))))
+

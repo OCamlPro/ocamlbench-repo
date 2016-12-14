@@ -1,0 +1,3 @@
+((name core-sequence)
+ (descr "Iterator composition extracted from Core_kernel.")
+ (cmd (%{bin}%/sequence-bench 10000)) (speed Slow))

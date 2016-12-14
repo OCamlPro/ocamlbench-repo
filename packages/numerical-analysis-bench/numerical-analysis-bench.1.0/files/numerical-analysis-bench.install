@@ -1,0 +1,22 @@
+bin: [
+  "durand-kerner-aberth.opt" { "durand-kerner-aberth" }
+  "fft.opt" { "fft" }
+  "?k-means.opt" { "k-means" }
+  "levinson-durbin.opt" { "levinson-durbin" }
+  "lu-decomposition.opt" { "lu-decomposition" }
+  "naive-multilayer.opt" { "naive-multilayer" }
+  "qr-decomposition.opt" { "qr-decomposition" }
+  "rnd_access.opt" { "rnd_access" }
+  "simple_access.opt" { "simple_access" }
+]
+share: [
+  "durand-kerner-aberth.bench"
+  "fft.bench"
+  "k-means.bench"
+  "levinson-durbin.bench"
+  "lu-decomposition.bench"
+  "naive-multilayer.bench"
+  "qr-decomposition.bench"
+  "rnd_access.bench"
+  "simple_access.bench"
+]

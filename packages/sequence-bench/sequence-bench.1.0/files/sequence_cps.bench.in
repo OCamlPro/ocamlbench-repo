@@ -1,0 +1,3 @@
+((name sequence-cps)
+ (descr "A cps sequence benchmark.")
+ (cmd (%{bin}%/ocp-sequence-cps-bench 10000)) (speed Slow))

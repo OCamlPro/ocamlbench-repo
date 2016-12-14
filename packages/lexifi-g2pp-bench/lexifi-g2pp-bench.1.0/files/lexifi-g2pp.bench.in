@@ -1,0 +1,4 @@
+((name lexifi-g2pp)
+ (descr "A simplified and stripped down version of LexiFi's calibration routine for the G2++ model.")
+ (cmd (%{bin}%/lexifi-g2pp)) (speed Slow)
+ (file_check (("%{share}%/lexifi-g2pp-bench/lexifi-g2pp-bench.output" "$OUTPUT$"))))

@@ -1,0 +1,11 @@
+opam-version: "2.0"
+name: "sauvola-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+build: [ [make "-C" "sauvola"] ]
+depends: ["ocaml" "camlimages"]
+substs: [
+  "sauvola.bench"
+]
+flags: light-uninstall

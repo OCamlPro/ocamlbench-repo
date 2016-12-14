@@ -1,0 +1,4 @@
+((name menhir-sql)
+ (descr "menhir sql_parser.mly")
+ (cmd (%{bin}%/menhir -v -t %{menhir-bench:share}%/keywords.mly %{menhir-bench:share}%/sql-parser.mly --base sql-parser))
+ (speed Fast) (discard (Stdout)))

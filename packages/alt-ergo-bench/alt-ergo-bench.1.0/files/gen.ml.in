@@ -1,0 +1,66 @@
+
+let files =
+  [ "00020___why_bf6246_euler003-T-WP_parameter_smallest_divisor";
+    "00076___why_f2468a_Site_central_imp-T-carte_autorisee_3";
+    "00115___why_b6d80d_relabel-T-WP_parameter_relabel";
+    "00145___why_0a8ac0_p9_15-T-OBF__ggjj_2";
+    "00195___fib__package-T-WP_parameter_def";
+    "00222___fib__package-T-WP_parameter_def";
+    "00224___why_c6049d_p9_17-T-OBF__yyll_1";
+    "00329___why_265778_p4_25_part2-T-bbvv_351";
+    "00344___why_fb54b2_Fonctions_imp-T-controler_carte_13";
+    "00893___why_b3d830_euler001-T-div2_sub";
+    "01012___p__package-T-WP_parameter_def";
+    "01192___why_98479f_p4_3_part1-T-ccgg_2055";
+    "01201___flight_manager__package-T-WP_parameter_def";
+    "02182___why_3f7a7d_inverse_in_place-T-WP_parameter_inverse_in_place";
+    "02362___why_be93d3_p4_3_part3-T-ccgg_1759";
+    "02802___step_function_test__package-T-WP_parameter_def";
+    "04124___why_e36d6b_int-T-induction_step";
+    "04298___why_7ae35b_p4_3_part4-T-ccgg_1618";
+    "08033___why_bebe52_p4_3_part11-T-ccgg_219";
+    "add_times_nsec_sum_higher_than_1s_post_3_Alt-Ergo";
+    "Automaton_i_part2-B_translation-advance_automaton_25";
+    "fill_assert_39_Alt-Ergo" ]
+
+let mlw_file f = f ^ ".why"
+let bench_file f = "alt_ergo_" ^ f ^ ".bench"
+
+let install =
+  String.concat "\n  "
+    ("share: [" ::
+     List.flatten
+       (List.map (fun f -> ["\"" ^ mlw_file f ^ "\"";
+                            "\"" ^ bench_file f ^ "\""]) files))
+  ^ "\n  \"check.ml\""
+  ^ "\n]\n"
+
+let bench_content f =
+  match f with
+  | "00195___fib__package-T-WP_parameter_def"
+  | "02182___why_3f7a7d_inverse_in_place-T-WP_parameter_inverse_in_place"
+  | "01201___flight_manager__package-T-WP_parameter_def" ->
+    Printf.sprintf
+    "((name alt-ergo-%s)\n \
+       (descr \"alt-ergo %s\")\n \
+       (cmd (%{bin}%/alt-ergo %{share}%/alt-ergo-bench/%s.why)) (speed Slow)\n \
+       (cmd_check (ocaml %{share}%/alt-ergo-bench/check.ml alt-ergo-%s NotValid \
+       %{switch}% $MACRODIR$))\n)"
+      f f f f
+  | _ ->
+    Printf.sprintf
+      "((name alt-ergo-%s)\n \
+       (descr \"alt-ergo %s\")\n \
+       (cmd (%{bin}%/alt-ergo %{share}%/alt-ergo-bench/%s.why)) (speed Slow)\n \
+       (cmd_check (ocaml %{share}%/alt-ergo-bench/check.ml alt-ergo-%s Valid \
+       %{switch}% $MACRODIR$))\n)"
+      f f f f
+
+let output_file filename s =
+  let oc = open_out filename in
+  output_string oc s;
+  close_out oc
+
+let () =
+  List.iter (fun f -> output_file (bench_file f) (bench_content f)) files;
+  output_file "alt-ergo-bench.install" install

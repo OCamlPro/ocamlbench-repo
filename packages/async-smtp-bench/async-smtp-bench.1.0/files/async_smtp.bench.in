@@ -1,0 +1,3 @@
+((name "async_smtp")
+ (descr "Sending and receiving n emails with async_smtp")
+ (cmd (%{bin}%/async_smtp_bench 2000)))

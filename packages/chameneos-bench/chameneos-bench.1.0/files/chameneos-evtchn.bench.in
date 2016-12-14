@@ -1,0 +1,3 @@
+((name chameneos-evtchn)
+ (descr "chameneos, Event channels")
+ (cmd (%{bin}%/chameneos_redux_evtchn 300000)))

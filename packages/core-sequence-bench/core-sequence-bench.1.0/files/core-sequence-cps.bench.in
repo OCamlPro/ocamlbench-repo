@@ -1,0 +1,3 @@
+((name core-sequence-cps)
+ (descr "Iterator composition in cps style.")
+ (cmd (%{bin}%/sequence-cps-bench 10000)) (speed Slow))

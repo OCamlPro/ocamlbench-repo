@@ -1,0 +1,3 @@
+((name setrip) (descr "Encode 32 Mib of random S-expressions")
+ (cmd (%{bin}%/setrip -enc -rseed 1067894368))
+ (discard (Stdout)))

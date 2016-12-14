@@ -1,0 +1,4 @@
+((name js_of_ocaml)
+ (descr "Ocaml bytecode to javascript compiler")
+ (cmd (%{bin}%/js_of_ocaml %{share}%/js_of_ocaml-bench/bytecode))
+ (speed Slow))

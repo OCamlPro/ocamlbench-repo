@@ -1,0 +1,4 @@
+((name numal-fft)
+ (descr "numerical analysis benches (fft)")
+ (cmd (%{bin}%/fft))
+ (speed Slow))

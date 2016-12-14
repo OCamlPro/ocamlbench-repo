@@ -1,0 +1,12 @@
+opam-version: "2.0"
+name: "sequence-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+build: [ [make "-C" "sequence"] ]
+substs: [
+  "sequence.bench"
+  "sequence_cps.bench"
+]
+depends: ["ocaml"]
+flags: light-uninstall

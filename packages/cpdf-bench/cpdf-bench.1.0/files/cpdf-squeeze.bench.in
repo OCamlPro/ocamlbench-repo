@@ -1,0 +1,4 @@
+((name cpdf-squeeze)
+ (descr "Cpdf squeeze on a large file")
+ (cmd (%{bin}%/cpdf -squeeze %{cpdf-bench:share}%/pdfs/PDFReference16.pdf_toobig -o /dev/null))
+ (speed Slow))

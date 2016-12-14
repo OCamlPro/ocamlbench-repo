@@ -1,0 +1,234 @@
+(* this is a prelude for Alt-Ergo*)
+(* this is a prelude for Alt-Ergo integer arithmetic *)
+logic match_bool : bool, 'a, 'a -> 'a
+
+axiom match_bool_True :
+  (forall z:'a. forall z1:'a. (match_bool(true, z, z1) = z))
+
+axiom match_bool_False :
+  (forall z:'a. forall z1:'a. (match_bool(false, z, z1) = z1))
+
+type qtmark
+
+type 'a list
+
+logic Nil : 'a list
+
+logic Cons : 'a, 'a list -> 'a list
+
+logic match_list : 'a list, 'a1, 'a1 -> 'a1
+
+axiom match_list_Nil :
+  (forall z:'a. forall z1:'a. (match_list((Nil : 'a1 list), z, z1) = z))
+
+axiom match_list_Cons :
+  (forall z:'a. forall z1:'a. forall u:'a1. forall u1:'a1 list.
+  (match_list(Cons(u, u1), z, z1) = z1))
+
+logic index_list : 'a list -> int
+
+axiom index_list_Nil : (index_list((Nil : 'a list)) = 0)
+
+axiom index_list_Cons :
+  (forall u:'a. forall u1:'a list [Cons(u, u1)]. (index_list(Cons(u,
+  u1)) = 1))
+
+logic Cons_proj_1 : 'a list -> 'a
+
+axiom Cons_proj_1_def :
+  (forall u:'a. forall u1:'a list. (Cons_proj_1(Cons(u, u1)) = u))
+
+logic Cons_proj_2 : 'a list -> 'a list
+
+axiom Cons_proj_2_def :
+  (forall u:'a. forall u1:'a list. (Cons_proj_2(Cons(u, u1)) = u1))
+
+axiom list_inversion :
+  (forall u:'a list. ((u = (Nil : 'a list)) or (u = Cons(Cons_proj_1(u),
+  Cons_proj_2(u)))))
+
+logic mem : 'a, 'a list -> prop
+
+axiom mem_def : (forall x:'a. (not mem(x, (Nil : 'a list))))
+
+axiom mem_def1 :
+  (forall x:'a.
+  (forall x1:'a. forall x2:'a list. (mem(x, Cons(x1, x2)) -> ((x = x1) or
+  mem(x, x2)))))
+
+axiom mem_def2 :
+  (forall x:'a.
+  (forall x1:'a. forall x2:'a list. (((x = x1) or mem(x, x2)) -> mem(x,
+  Cons(x1, x2)))))
+
+logic infix_plpl : 'a list, 'a list -> 'a list
+
+axiom infix_plpl_def :
+  (forall l2:'a list. (infix_plpl((Nil : 'a list), l2) = l2))
+
+axiom infix_plpl_def1 :
+  (forall l2:'a list.
+  (forall x:'a. forall x1:'a list. (infix_plpl(Cons(x, x1), l2) = Cons(x,
+  infix_plpl(x1, l2)))))
+
+axiom Append_assoc :
+  (forall l1:'a list. forall l2:'a list. forall l3:'a list. (infix_plpl(l1,
+  infix_plpl(l2, l3)) = infix_plpl(infix_plpl(l1, l2), l3)))
+
+axiom Append_l_nil : (forall l:'a list. (infix_plpl(l, (Nil : 'a list)) = l))
+
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+logic length : 'a list -> int
+
+axiom length_def : (length((Nil : 'a list)) = 0)
+
+axiom length_def1 :
+  (forall x:'a. forall x1:'a list. (length(Cons(x, x1)) = (1 + length(x1))))
+
+axiom Length_nonnegative : (forall l:'a list. (0 <= length(l)))
+
+axiom Length_nil :
+  (forall l:'a list. ((length(l) = 0) -> (l = (Nil : 'a list))))
+
+axiom Length_nil1 :
+  (forall l:'a list. ((l = (Nil : 'a list)) -> (length(l) = 0)))
+
+axiom Append_length :
+  (forall l1:'a list. forall l2:'a list. (length(infix_plpl(l1,
+  l2)) = (length(l1) + length(l2))))
+
+axiom mem_append :
+  (forall x:'a. forall l1:'a list. forall l2:'a list. (mem(x, infix_plpl(l1,
+  l2)) -> (mem(x, l1) or mem(x, l2))))
+
+axiom mem_append1 :
+  (forall x:'a. forall l1:'a list. forall l2:'a list. ((mem(x, l1) or mem(x,
+  l2)) -> mem(x, infix_plpl(l1, l2))))
+
+axiom mem_decomp :
+  (forall x:'a. forall l:'a list. (mem(x, l) ->
+  (exists l1:'a list. exists l2:'a list. (l = infix_plpl(l1, Cons(x, l2))))))
+
+logic distinct1 : 'a list -> prop
+
+axiom distinct_zero : distinct1((Nil : 'a list))
+
+axiom distinct_one : (forall x:'a. distinct1(Cons(x, (Nil : 'a list))))
+
+axiom distinct_many :
+  (forall x:'a. forall l:'a list. ((not mem(x, l)) -> (distinct1(l) ->
+  distinct1(Cons(x, l)))))
+
+axiom distinct_inversion :
+  (forall z:'a list. (distinct1(z) -> (((z = (Nil : 'a list)) or
+  (exists x:'a. (z = Cons(x, (Nil : 'a list))))) or
+  (exists x:'a. exists l:'a list. ((not mem(x, l)) and (distinct1(l) and
+  (z = Cons(x, l))))))))
+
+axiom distinct_append :
+  (forall l1:'a list. forall l2:'a list. (distinct1(l1) -> (distinct1(l2) ->
+  ((forall x:'a. (mem(x, l1) -> (not mem(x, l2)))) ->
+  distinct1(infix_plpl(l1, l2))))))
+
+type 'a tree
+
+logic Leaf : 'a -> 'a tree
+
+logic Node : 'a tree, 'a tree -> 'a tree
+
+logic match_tree : 'a tree, 'a1, 'a1 -> 'a1
+
+axiom match_tree_Leaf :
+  (forall z:'a. forall z1:'a. forall u:'a1. (match_tree(Leaf(u), z, z1) = z))
+
+axiom match_tree_Node :
+  (forall z:'a. forall z1:'a. forall u:'a1 tree. forall u1:'a1 tree.
+  (match_tree(Node(u, u1), z, z1) = z1))
+
+logic index_tree : 'a tree -> int
+
+axiom index_tree_Leaf : (forall u:'a [Leaf(u)]. (index_tree(Leaf(u)) = 0))
+
+axiom index_tree_Node :
+  (forall u:'a tree. forall u1:'a tree [Node(u, u1)]. (index_tree(Node(u,
+  u1)) = 1))
+
+logic Leaf_proj_1 : 'a tree -> 'a
+
+axiom Leaf_proj_1_def : (forall u:'a. (Leaf_proj_1(Leaf(u)) = u))
+
+logic Node_proj_1 : 'a tree -> 'a tree
+
+axiom Node_proj_1_def :
+  (forall u:'a tree. forall u1:'a tree. (Node_proj_1(Node(u, u1)) = u))
+
+logic Node_proj_2 : 'a tree -> 'a tree
+
+axiom Node_proj_2_def :
+  (forall u:'a tree. forall u1:'a tree. (Node_proj_2(Node(u, u1)) = u1))
+
+axiom tree_inversion :
+  (forall u:'a tree. ((u = Leaf(Leaf_proj_1(u))) or (u = Node(Node_proj_1(u),
+  Node_proj_2(u)))))
+
+logic labels : 'a tree -> 'a list
+
+axiom labels_def :
+  (forall x:'a. (labels(Leaf(x)) = Cons(x, (Nil : 'a list))))
+
+axiom labels_def1 :
+  (forall x:'a tree. forall x1:'a tree. (labels(Node(x,
+  x1)) = infix_plpl(labels(x), labels(x1))))
+
+axiom labels_Leaf1 :
+  (forall x:'a. forall y:'a. (mem(x, labels(Leaf(y))) -> (x = y)))
+
+axiom labels_Leaf2 :
+  (forall x:'a. forall y:'a. ((x = y) -> mem(x, labels(Leaf(y)))))
+
+axiom labels_Node1 :
+  (forall x:'a. forall l:'a tree. forall r:'a tree. (mem(x, labels(Node(l,
+  r))) -> (mem(x, labels(l)) or mem(x, labels(r)))))
+
+axiom labels_Node2 :
+  (forall x:'a. forall l:'a tree. forall r:'a tree. ((mem(x, labels(l)) or
+  mem(x, labels(r))) -> mem(x, labels(Node(l, r)))))
+
+logic same_shape : 'a tree, 'b tree -> prop
+
+axiom same_shape_Leaf :
+  (forall x1:'a. forall x2:'b. same_shape(Leaf(x1), Leaf(x2)))
+
+axiom same_shape_Node :
+  (forall l1:'a tree. forall r1:'a tree. forall l2:'b tree.
+  forall r2:'b tree. (same_shape(l1, l2) -> (same_shape(r1, r2) ->
+  same_shape(Node(l1, r1), Node(l2, r2)))))
+
+axiom same_shape_inversion :
+  (forall z:'a tree. forall z1:'b tree. (same_shape(z, z1) ->
+  ((exists x1:'a. exists x2:'b. ((z = Leaf(x1)) and (z1 = Leaf(x2)))) or
+  (exists l1:'a tree. exists r1:'a tree. exists l2:'b tree.
+  exists r2:'b tree. (same_shape(l1, l2) and (same_shape(r1, r2) and
+  ((z = Node(l1, r1)) and (z1 = Node(l2, r2)))))))))
+
+type 'a ref = { contents : 'a
+}
+
+goal WP_parameter_relabel :
+  (forall r:int.
+  (forall x:'a tree. forall x1:'a tree.
+  (forall r1:int.
+  (forall o:int tree. ((same_shape(x1, o) and (distinct1(labels(o)) and
+  ((r <= r1) and
+  (forall x2:int. (mem(x2, labels(o)) -> ((r <  x2) and (x2 <= r1))))))) ->
+  (forall r2:int.
+  (forall o1:int tree. ((same_shape(x, o1) and (distinct1(labels(o1)) and
+  ((r1 <= r2) and
+  (forall x2:int. (mem(x2, labels(o1)) -> ((r1 <  x2) and (x2 <= r2))))))) ->
+  (same_shape(Node(x, x1), Node(o1, o)) and (distinct1(labels(Node(o1,
+  o))) and ((r <= r2) and
+  (forall x2:int. (mem(x2, labels(Node(o1, o))) -> ((r <  x2) and
+  (x2 <= r2)))))))))))))))

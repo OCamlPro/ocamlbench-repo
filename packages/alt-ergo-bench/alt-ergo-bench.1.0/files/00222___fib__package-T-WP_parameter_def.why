@@ -1,0 +1,444 @@
+(* this is a prelude for Alt-Ergo*)
+(* this is a prelude for Alt-Ergo integer arithmetic *)
+logic safe_comp_div: int, int -> int
+axiom safe_comp_div_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_div(x,y) = x / y
+logic safe_comp_mod: int, int -> int
+axiom safe_comp_mod_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_mod(x,y) = x % y
+logic safe_eucl_div: int, int -> int
+axiom safe_eucl_div_def: forall x, y:int. x >= 0 and y > 0 -> safe_eucl_div(x,y) = x / y
+logic safe_eucl_mod: int, int -> int
+axiom safe_eucl_mod_def: forall x, y:int. x >= 0 and y > 0 -> safe_eucl_mod(x,y) = x % y
+logic match_bool1 : bool, 'a, 'a -> 'a
+
+axiom match_bool_True1 :
+  (forall z:'a. forall z1:'a. (match_bool1(true, z, z1) = z))
+
+axiom match_bool_False1 :
+  (forall z:'a. forall z1:'a. (match_bool1(false, z, z1) = z1))
+
+type unit1
+
+type 'a ref1 = { contents1 : 'a
+}
+
+function andb1(x: bool, y: bool) : bool = match_bool1(x, y, false)
+
+function orb1(x: bool, y: bool) : bool = match_bool1(x, true, y)
+
+function xorb1(x: bool, y: bool) : bool = match_bool1(y, match_bool1(x,
+  false, true), match_bool1(x, true, false))
+
+function notb1(x: bool) : bool = match_bool1(x, false, true)
+
+function implb1(x: bool, y: bool) : bool = match_bool1(y, true,
+  match_bool1(x, false, true))
+
+logic us__ignore1 : 'a -> unit
+
+type us_private1
+
+type us_type_of_heap1
+
+type us_image1
+
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+logic abs : int -> int
+
+axiom abs_def : (forall x:int. ((0 <= x) -> (abs(x) = x)))
+
+axiom abs_def1 : (forall x:int. ((not (0 <= x)) -> (abs(x) = (-x))))
+
+axiom Abs_le : (forall x:int. forall y:int. ((abs(x) <= y) -> ((-y) <= x)))
+
+axiom Abs_le1 : (forall x:int. forall y:int. ((abs(x) <= y) -> (x <= y)))
+
+axiom Abs_le2 :
+  (forall x:int. forall y:int. ((((-y) <= x) and (x <= y)) -> (abs(x) <= y)))
+
+axiom Abs_pos : (forall x:int. (0 <= abs(x)))
+
+logic power : int, int -> int
+
+axiom Power_0 : (forall x:int. (power(x, 0) = 1))
+
+axiom Power_s :
+  (forall x:int. forall n1:int. ((0 <= n1) -> (power(x,
+  (n1 + 1)) = (x * power(x, n1)))))
+
+axiom Power_s_alt :
+  (forall x:int. forall n1:int. ((0 <  n1) -> (power(x, n1) = (x * power(x,
+  (n1 - 1))))))
+
+axiom Power_1 : (forall x:int. (power(x, 1) = x))
+
+axiom Power_sum :
+  (forall x:int. forall n1:int. forall m:int. ((0 <= n1) -> ((0 <= m) ->
+  (power(x, (n1 + m)) = (power(x, n1) * power(x, m))))))
+
+axiom Power_mult :
+  (forall x:int. forall n1:int. forall m:int. ((0 <= n1) -> ((0 <= m) ->
+  (power(x, (n1 * m)) = power(power(x, n1), m)))))
+
+axiom Power_mult2 :
+  (forall x:int. forall y:int. forall n1:int. ((0 <= n1) -> (power((x * y),
+  n1) = (power(x, n1) * power(y, n1)))))
+
+logic min : int, int -> int
+
+logic max : int, int -> int
+
+axiom Max_is_ge : (forall x:int. forall y:int. (x <= max(x, y)))
+
+axiom Max_is_ge1 : (forall x:int. forall y:int. (y <= max(x, y)))
+
+axiom Max_is_some :
+  (forall x:int. forall y:int. ((max(x, y) = x) or (max(x, y) = y)))
+
+axiom Min_is_le : (forall x:int. forall y:int. (min(x, y) <= x))
+
+axiom Min_is_le1 : (forall x:int. forall y:int. (min(x, y) <= y))
+
+axiom Min_is_some :
+  (forall x:int. forall y:int. ((min(x, y) = x) or (min(x, y) = y)))
+
+axiom Max_x : (forall x:int. forall y:int. ((y <= x) -> (max(x, y) = x)))
+
+axiom Max_y : (forall x:int. forall y:int. ((x <= y) -> (max(x, y) = y)))
+
+axiom Min_x : (forall x:int. forall y:int. ((x <= y) -> (min(x, y) = x)))
+
+axiom Min_y : (forall x:int. forall y:int. ((y <= x) -> (min(x, y) = y)))
+
+axiom Max_sym :
+  (forall x:int. forall y:int. ((y <= x) -> (max(x, y) = max(y, x))))
+
+axiom Min_sym :
+  (forall x:int. forall y:int. ((y <= x) -> (min(x, y) = min(y, x))))
+
+axiom Div_mod :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (x = ((y * safe_comp_div(x,y)) + safe_comp_mod(x,y)))))
+
+axiom Div_bound :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_bound1 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= x)))
+
+axiom Mod_bound :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  ((-abs(y)) <  safe_comp_mod(x,y))))
+
+axiom Mod_bound1 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (safe_comp_mod(x,y) <  abs(y))))
+
+axiom Div_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= 0)))
+
+axiom Mod_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (not (y = 0))) ->
+  (0 <= safe_comp_mod(x,y))))
+
+axiom Mod_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (not (y = 0))) ->
+  (safe_comp_mod(x,y) <= 0)))
+
+axiom Rounds_toward_zero :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (abs((safe_comp_div(x,y) * y)) <= abs(x))))
+
+axiom Div_1 : (forall x:int. (safe_comp_div(x,1) = x))
+
+axiom Mod_1 : (forall x:int. (safe_comp_mod(x,1) = 0))
+
+axiom Div_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_div(x,y) = 0)))
+
+axiom Mod_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_mod(x,y) = x)))
+
+axiom Div_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_div(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_div(((x * y) + z),x) = (y + safe_comp_div(z,x)))))
+
+axiom Mod_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_mod(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_mod(((x * y) + z),x) = safe_comp_mod(z,x))))
+
+axiom Div_mod1 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (x = ((y * safe_eucl_div(x,y)) + safe_eucl_mod(x,y)))))
+
+axiom Div_bound2 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_eucl_div(x,y))))
+
+axiom Div_bound3 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (safe_eucl_div(x,y) <= x)))
+
+axiom Mod_bound2 :
+  (forall x:int. forall y:int. ((not (y = 0)) -> (0 <= safe_eucl_mod(x,y))))
+
+axiom Mod_bound3 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (safe_eucl_mod(x,y) <  abs(y))))
+
+axiom Mod_11 : (forall x:int. (safe_eucl_mod(x,1) = 0))
+
+axiom Div_11 : (forall x:int. (safe_eucl_div(x,1) = x))
+
+axiom Div_inf1 :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_eucl_div(x,y) = 0)))
+
+axiom Div_inf_neg :
+  (forall x:int. forall y:int. (((0 <  x) and (x <= y)) ->
+  (safe_eucl_div((-x),y) = (-1))))
+
+axiom Mod_0 : (forall y:int. ((not (y = 0)) -> (safe_eucl_mod(0,y) = 0)))
+
+axiom Div_1_left : (forall y:int. ((1 <  y) -> (safe_eucl_div(1,y) = 0)))
+
+axiom Div_minus1_left :
+  (forall y:int. ((1 <  y) -> (safe_eucl_div((-1),y) = (-1))))
+
+axiom Mod_1_left : (forall y:int. ((1 <  y) -> (safe_eucl_mod(1,y) = 1)))
+
+axiom Mod_minus1_left :
+  (forall y:int. ((1 <  y) -> (safe_eucl_mod((-1),y) = (y - 1))))
+
+axiom Div_mult1 :
+  (forall x:int. forall y:int. forall z:int [safe_eucl_div(((x * y) + z),x)].
+  ((0 <  x) -> (safe_eucl_div(((x * y) + z),x) = (y + safe_eucl_div(z,x)))))
+
+axiom Mod_mult1 :
+  (forall x:int. forall y:int. forall z:int [safe_eucl_mod(((x * y) + z),x)].
+  ((0 <  x) -> (safe_eucl_mod(((x * y) + z),x) = safe_eucl_mod(z,x))))
+
+logic bool_eq4 : int, int -> bool
+
+logic bool_ne1 : int, int -> bool
+
+logic bool_lt1 : int, int -> bool
+
+logic bool_le1 : int, int -> bool
+
+logic bool_gt1 : int, int -> bool
+
+logic bool_ge1 : int, int -> bool
+
+axiom bool_eq_axiom2 :
+  (forall x:int. (forall y:int. ((bool_eq4(x, y) = true) -> (x = y))))
+
+axiom bool_eq_axiom3 :
+  (forall x:int. (forall y:int. ((x = y) -> (bool_eq4(x, y) = true))))
+
+axiom bool_ne_axiom2 :
+  (forall x:int. (forall y:int. ((bool_ne1(x, y) = true) -> (not (x = y)))))
+
+axiom bool_ne_axiom3 :
+  (forall x:int. (forall y:int. ((not (x = y)) -> (bool_ne1(x, y) = true))))
+
+axiom bool_lt_axiom2 :
+  (forall x:int. (forall y:int. ((bool_lt1(x, y) = true) -> (x <  y))))
+
+axiom bool_lt_axiom3 :
+  (forall x:int. (forall y:int. ((x <  y) -> (bool_lt1(x, y) = true))))
+
+axiom Bool_int__le_axiom2 :
+  (forall x:int. (forall y:int. ((bool_le1(x, y) = true) -> (x <= y))))
+
+axiom Bool_int__le_axiom3 :
+  (forall x:int. (forall y:int. ((x <= y) -> (bool_le1(x, y) = true))))
+
+axiom bool_gt_axiom2 :
+  (forall x:int. (forall y:int. ((bool_gt1(x, y) = true) -> (y <  x))))
+
+axiom bool_gt_axiom3 :
+  (forall x:int. (forall y:int. ((y <  x) -> (bool_gt1(x, y) = true))))
+
+axiom bool_ge_axiom2 :
+  (forall x:int. (forall y:int. ((bool_ge1(x, y) = true) -> (y <= x))))
+
+axiom bool_ge_axiom3 :
+  (forall x:int. (forall y:int. ((y <= x) -> (bool_ge1(x, y) = true))))
+
+type integer1
+
+logic attr__ATTRIBUTE_MODULUS2 : int
+
+logic attr__ATTRIBUTE_IMAGE5 : int -> us_image1
+
+logic attr__ATTRIBUTE_VALUE__pre_check5 : us_image1 -> prop
+
+logic attr__ATTRIBUTE_VALUE5 : us_image1 -> int
+
+predicate in_range2(x: int) = (((-2147483648) <= x) and (x <= 2147483647))
+
+logic to_int5 : integer1 -> int
+
+logic of_int5 : int -> integer1
+
+predicate eq5(x: integer1, y: integer1) = (to_int5(x) = to_int5(y))
+
+axiom range_axiom2 : (forall x:integer1. in_range2(to_int5(x)))
+
+axiom inversion_axiom2 :
+  (forall x:integer1 [to_int5(x)]. (of_int5(to_int5(x)) = x))
+
+logic bool_eq7 : int, int -> bool
+
+axiom bool_eq_def4 :
+  (forall x:int. forall y:int. ((x = y) -> (bool_eq7(x, y) = true)))
+
+axiom bool_eq_def5 :
+  (forall x:int. forall y:int. ((not (x = y)) -> (bool_eq7(x, y) = false)))
+
+logic dummy5 : integer1
+
+axiom coerce_axiom2 :
+  (forall x:int [to_int5(of_int5(x))| in_range2(x), of_int5(x)].
+  (in_range2(x) -> (to_int5(of_int5(x)) = x)))
+
+logic a11 : integer1
+
+logic a21 : integer1
+
+type natural1
+
+logic attr__ATTRIBUTE_MODULUS : int
+
+logic attr__ATTRIBUTE_IMAGE3 : int -> us_image1
+
+logic attr__ATTRIBUTE_VALUE__pre_check3 : us_image1 -> prop
+
+logic attr__ATTRIBUTE_VALUE3 : us_image1 -> int
+
+predicate in_range(x: int) = ((0 <= x) and (x <= 2147483647))
+
+logic to_int3 : natural1 -> int
+
+logic of_int3 : int -> natural1
+
+predicate eq3(x: natural1, y: natural1) = (to_int3(x) = to_int3(y))
+
+axiom range_axiom : (forall x:natural1. in_range(to_int3(x)))
+
+axiom inversion_axiom :
+  (forall x:natural1 [to_int3(x)]. (of_int3(to_int3(x)) = x))
+
+logic bool_eq5 : int, int -> bool
+
+axiom bool_eq_def :
+  (forall x:int. forall y:int. ((x = y) -> (bool_eq5(x, y) = true)))
+
+axiom bool_eq_def1 :
+  (forall x:int. forall y:int. ((not (x = y)) -> (bool_eq5(x, y) = false)))
+
+logic dummy3 : natural1
+
+axiom coerce_axiom :
+  (forall x:int [to_int3(of_int3(x))| in_range(x), of_int3(x)].
+  (in_range(x) -> (to_int3(of_int3(x)) = x)))
+
+logic n14 : natural1
+
+type t21
+
+logic n24 : natural1
+
+type t22
+
+type t23
+
+type t24
+
+type t25
+
+type t26
+
+function ite1(b: bool, x: 'a, y: 'a) : 'a = match_bool1(b, x, y)
+
+logic to_int13 : bool -> int
+
+axiom to_int_def : (forall b:bool. ((b = true) -> (to_int13(b) = 1)))
+
+axiom to_int_def1 : (forall b:bool. ((not (b = true)) -> (to_int13(b) = 0)))
+
+logic of_int13 : int -> bool
+
+axiom of_int_def : (forall i:int. ((i = 0) -> (of_int13(i) = false)))
+
+axiom of_int_def1 : (forall i:int. ((not (i = 0)) -> (of_int13(i) = true)))
+
+predicate in_range6(x: int) = ((x = 0) or (x = 1))
+
+logic attr__ATTRIBUTE_IMAGE13 : bool -> us_image1
+
+logic attr__ATTRIBUTE_VALUE__pre_check13 : us_image1 -> prop
+
+logic attr__ATTRIBUTE_VALUE13 : us_image1 -> bool
+
+logic bool_eq15 : bool, bool -> bool
+
+axiom bool_eq_def12 :
+  (forall x:bool. forall y:bool. ((x = y) -> (bool_eq15(x, y) = true)))
+
+axiom bool_eq_def13 :
+  (forall x:bool. forall y:bool. ((not (x = y)) -> (bool_eq15(x,
+  y) = false)))
+
+goal WP_parameter_def4 : (((to_int5(a11) = to_int5(a21)) and
+  ((to_int3(n14) = to_int3(n24)) and (((not (to_int5(a11) = 0)) or
+  (not (to_int3(n14) = 0))) and (power(to_int5(a11),
+  to_int3(n14)) <  2147483647)))) ->
+  (forall p1:integer1. ((p1 = of_int5(1)) ->
+  (forall b1:integer1. ((b1 = a11) ->
+  (forall k1:natural1. ((k1 = n14) -> ((0 <  to_int3(k1)) ->
+  (forall k11:natural1. forall b11:integer1. forall p11:integer1.
+  ((power(to_int5(a11), to_int3(n14)) = (to_int5(p11) * power(to_int5(b11),
+  to_int3(k11)))) -> ((0 <  to_int3(k11)) ->
+  (forall ustemp_standard__fib_10:int.
+  ((ustemp_standard__fib_10 = to_int3(k11)) -> ((not (2 = 0)) ->
+  ((not (safe_comp_mod(to_int3(k11),2) = 0)) ->
+  ((((to_int5(p11) * to_int5(b11)) * power(to_int5(b11),
+  (to_int3(k11) - 1))) = power(to_int5(a11), to_int3(n14))) ->
+  (in_range((to_int3(k11) - 1)) ->
+  (forall k12:natural1. ((k12 = of_int3((to_int3(k11) - 1))) ->
+  (in_range2((to_int5(b11) * to_int5(p11))) ->
+  (forall p12:integer1. ((p12 = of_int5((to_int5(b11) * to_int5(p11)))) ->
+  ((not (0 <  to_int3(k12))) ->
+  (forall p2:integer1. ((p2 = of_int5(1)) ->
+  (forall b2:integer1. ((b2 = a21) ->
+  (forall k2:natural1. ((k2 = n24) -> ((0 <  to_int3(k2)) ->
+  (forall k21:natural1. forall b21:integer1. forall p21:integer1.
+  (((((power(to_int5(a21),
+  to_int3(n24)) = (to_int5(p21) * power(to_int5(b21), to_int3(k21)))) and
+  (0 <= to_int3(k12))) and (to_int5(p21) <= power(to_int5(a21),
+  to_int3(n24)))) and (to_int5(b21) <= power(to_int5(a21), to_int3(n24)))) ->
+  ((0 <  to_int3(k21)) ->
+  (forall ustemp_standard__fib_11:int.
+  ((ustemp_standard__fib_11 = to_int3(k21)) -> ((not (2 = 0)) ->
+  ((not (safe_comp_mod(to_int3(k21),2) = 0)) ->
+  (((((to_int5(p21) * to_int5(b21)) * power(to_int5(b21),
+  (to_int3(k21) - 1))) = power(to_int5(a21), to_int3(n24))) and
+  (1 <= to_int3(k21))) -> (in_range((to_int3(k21) - 1)) ->
+  (forall k22:natural1. ((k22 = of_int3((to_int3(k21) - 1))) ->
+  in_range2((to_int5(b21) * to_int5(p21))))))))))))))))))))))))))))))))))))))))))))
+

@@ -1,0 +1,15 @@
+opam-version: "2.0"
+name: "async-smtp-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+build: [ [make "-C" "async_smtp"] ]
+depends: [
+  "ocaml"
+  "async" {= "112.17.00"}
+  "async_smtp" {= "112.17.00"}
+]
+substs: [
+  "async_smtp.bench"
+]
+flags: light-uninstall

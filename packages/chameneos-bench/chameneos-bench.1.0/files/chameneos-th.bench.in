@@ -1,0 +1,3 @@
+((name chameneos-th)
+ (descr "chameneos, Unix threads")
+ (cmd (%{bin}%/chameneos_redux_th 300000)))

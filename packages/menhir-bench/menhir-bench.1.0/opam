@@ -1,0 +1,10 @@
+opam-version: "2.0"
+tags: [ "benchmark" ]
+maintainer: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+depends: ["ocaml" "menhir"]
+substs: [
+  "menhir_yacc.bench"
+  "menhir_fancy.bench"
+  "menhir_sql.bench"
+]
+flags: light-uninstall

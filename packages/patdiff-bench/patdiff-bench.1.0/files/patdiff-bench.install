@@ -1,0 +1,5 @@
+share: [
+  "patdiff.bench"
+  "file1"
+  "file2"
+]

@@ -1,0 +1,4 @@
+((name cpdf-reformat)
+ (descr "Cpdf reformatting on a large file")
+ (cmd (%{bin}%/cpdf scale-to-fit a4landscape -twoup %{cpdf-bench:share}%/pdfs/PDFReference16.pdf_toobig -o /dev/null))
+ (speed Slow))

@@ -1,0 +1,9 @@
+bin: [
+  "valet/_build/test_async.native" {"valet_test_async"}
+  "valet/_build/test_lwt.native" {"valet_test_lwt"}
+]
+
+share: [
+  "valet_async.bench"
+  "valet_lwt.bench"
+]

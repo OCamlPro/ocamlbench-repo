@@ -1,0 +1,7 @@
+bin: [
+  "yojson/ydump_bench" {"ydump_bench"}
+]
+
+share: [
+  "ydump_sample.bench"
+]

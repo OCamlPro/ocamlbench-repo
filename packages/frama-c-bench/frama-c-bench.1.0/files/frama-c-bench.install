@@ -1,0 +1,9 @@
+share : [
+  "frama-c-deflate.bench"
+  "frama-c-idct.bench"
+  "t.c"
+  "idct/idct.c" {"idct/idct.c"}
+  "idct/ieee_1180_1990.c" {"idct/ieee_1180_1990.c"}
+  "math.c"
+  "math.h"
+]

@@ -1,0 +1,3 @@
+((name "thread-sleep-lwt")
+ (descr "Scheduling sleeping threads")
+ (cmd (%{bin}%/thread_sleep_lwt)))

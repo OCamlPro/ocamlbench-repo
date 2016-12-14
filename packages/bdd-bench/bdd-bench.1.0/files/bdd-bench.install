@@ -1,0 +1,7 @@
+bin: [
+  "bdd/bdd.native" {"bdd-bench"}
+]
+
+share: [
+  "bdd.bench"
+]

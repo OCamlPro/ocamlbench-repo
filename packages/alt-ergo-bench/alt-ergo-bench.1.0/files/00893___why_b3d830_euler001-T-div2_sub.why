@@ -1,0 +1,139 @@
+(* this is a prelude for Alt-Ergo*)
+(* this is a prelude for Alt-Ergo integer arithmetic *)
+logic safe_comp_div: int, int -> int
+axiom safe_comp_div_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_div(x,y) = x / y
+logic safe_comp_mod: int, int -> int
+axiom safe_comp_mod_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_mod(x,y) = x % y
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+logic abs : int -> int
+
+axiom abs_def : (forall x:int. ((0 <= x) -> (abs(x) = x)))
+
+axiom abs_def1 : (forall x:int. ((not (0 <= x)) -> (abs(x) = (-x))))
+
+axiom Abs_le : (forall x:int. forall y:int. ((abs(x) <= y) -> ((-y) <= x)))
+
+axiom Abs_le1 : (forall x:int. forall y:int. ((abs(x) <= y) -> (x <= y)))
+
+axiom Abs_le2 :
+  (forall x:int. forall y:int. ((((-y) <= x) and (x <= y)) -> (abs(x) <= y)))
+
+axiom Abs_pos : (forall x:int. (0 <= abs(x)))
+
+axiom Div_mod :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (x = ((y * safe_comp_div(x,y)) + safe_comp_mod(x,y)))))
+
+axiom Div_bound :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_bound1 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= x)))
+
+axiom Mod_bound :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  ((-abs(y)) <  safe_comp_mod(x,y))))
+
+axiom Mod_bound1 :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (safe_comp_mod(x,y) <  abs(y))))
+
+axiom Div_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  (0 <= safe_comp_div(x,y))))
+
+axiom Div_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (0 <  y)) ->
+  (safe_comp_div(x,y) <= 0)))
+
+axiom Mod_sign_pos :
+  (forall x:int. forall y:int. (((0 <= x) and (not (y = 0))) ->
+  (0 <= safe_comp_mod(x,y))))
+
+axiom Mod_sign_neg :
+  (forall x:int. forall y:int. (((x <= 0) and (not (y = 0))) ->
+  (safe_comp_mod(x,y) <= 0)))
+
+axiom Rounds_toward_zero :
+  (forall x:int. forall y:int. ((not (y = 0)) ->
+  (abs((safe_comp_div(x,y) * y)) <= abs(x))))
+
+axiom Div_1 : (forall x:int. (safe_comp_div(x,1) = x))
+
+axiom Mod_1 : (forall x:int. (safe_comp_mod(x,1) = 0))
+
+axiom Div_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_div(x,y) = 0)))
+
+axiom Mod_inf :
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+  (safe_comp_mod(x,y) = x)))
+
+axiom Div_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_div(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_div(((x * y) + z),x) = (y + safe_comp_div(z,x)))))
+
+axiom Mod_mult :
+  (forall x:int. forall y:int. forall z:int [safe_comp_mod(((x * y) + z),x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+  (safe_comp_mod(((x * y) + z),x) = safe_comp_mod(z,x))))
+
+axiom mod_div_unique :
+  (forall x:int. forall y:int. forall q:int. forall r:int. (((0 <= x) and
+  ((0 <  y) and ((x = ((q * y) + r)) and ((0 <= r) and (r <  y))))) ->
+  (q = safe_comp_div(x,y))))
+
+axiom mod_div_unique1 :
+  (forall x:int. forall y:int. forall q:int. forall r:int. (((0 <= x) and
+  ((0 <  y) and ((x = ((q * y) + r)) and ((0 <= r) and (r <  y))))) ->
+  (r = safe_comp_mod(x,y))))
+
+axiom mod_succ_1 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  ((not (safe_comp_mod((x + 1),y) = 0)) ->
+  (safe_comp_mod((x + 1),y) = (safe_comp_mod(x,y) + 1)))))
+
+axiom mod_succ_2 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  ((safe_comp_mod((x + 1),y) = 0) -> (safe_comp_mod(x,y) = (y - 1)))))
+
+axiom div_succ_1 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  ((safe_comp_mod((x + 1),y) = 0) ->
+  (safe_comp_div((x + 1),y) = (safe_comp_div(x,y) + 1)))))
+
+axiom div_succ_2 :
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+  ((not (safe_comp_mod((x + 1),y) = 0)) ->
+  (safe_comp_div((x + 1),y) = safe_comp_div(x,y)))))
+
+axiom mod2_mul2 : (forall x:int. (safe_comp_mod((2 * x),2) = 0))
+
+axiom mod2_mul2_aux :
+  (forall x:int. forall y:int. (safe_comp_mod((y * (2 * x)),2) = 0))
+
+axiom mod2_mul2_aux2 :
+  (forall x:int. forall y:int. forall z:int. forall t:int.
+  (safe_comp_mod(((y * (2 * x)) + (z * (2 * t))),2) = 0))
+
+axiom div2_mul2 : (forall x:int. (safe_comp_div((2 * x),2) = x))
+
+axiom div2_mul2_aux :
+  (forall x:int. forall y:int. (safe_comp_div((y * (2 * x)),2) = (y * x)))
+
+axiom div2_add :
+  (forall x:int. forall y:int. (((safe_comp_mod(x,2) = 0) and
+  (safe_comp_mod(y,2) = 0)) ->
+  (safe_comp_div((x + y),2) = (safe_comp_div(x,2) + safe_comp_div(y,2)))))
+
+goal div2_sub :
+  (forall x:int. forall y:int. (((safe_comp_mod(x,2) = 0) and
+  (safe_comp_mod(y,2) = 0)) ->
+  (safe_comp_div((x - y),2) = (safe_comp_div(x,2) - safe_comp_div(y,2)))))

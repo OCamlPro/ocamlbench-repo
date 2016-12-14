@@ -1,0 +1,7 @@
+bin: [
+  "core_micro/_build/runner.native" {"core_inline_runner_bench"}
+]
+
+share: [
+  "core_micro.bench"
+]

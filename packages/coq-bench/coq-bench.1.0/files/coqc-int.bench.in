@@ -1,0 +1,6 @@
+((name coqc-int)
+ (descr "coqc on Int.v")
+ (cmd (%{bin}%/coqc %{coq-bench:share}%/src/Int.v))
+ (cmd_check
+   ("%{bin}%/coqchk" "-I" "%{coq-bench:share}%/src" "-silent" "-norec" "Int"))
+ (speed Slow))

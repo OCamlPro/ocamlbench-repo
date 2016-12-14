@@ -1,0 +1,3 @@
+((name cohttp-lwt)
+ (descr "A cohttp-lwt benchmark.")
+ (cmd (%{bin}%/cohttp_lwt_bench 1000)) (speed Slow))

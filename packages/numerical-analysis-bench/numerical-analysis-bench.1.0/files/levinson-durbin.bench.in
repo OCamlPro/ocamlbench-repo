@@ -1,0 +1,4 @@
+((name numal-levinson-durbin)
+ (descr "numerical analysis benches (levinson-durbin)")
+ (cmd (%{bin}%/levinson-durbin))
+ (speed Slow))

@@ -1,0 +1,4 @@
+((name menhir-fancy)
+ (descr "menhir fancy-parser.mly")
+ (cmd (/home/lg/ocamlpro/flambda-task-force/opam/comparison/bin/menhir /home/lg/ocamlpro/flambda-task-force/opam/comparison/share/menhir-bench/fancy-parser.mly))
+ (speed Fast) (discard (Stdout)))

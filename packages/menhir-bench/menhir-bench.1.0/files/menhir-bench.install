@@ -1,0 +1,11 @@
+share: [
+  "yacc-parser.mly"
+  "fancy-parser.mly"
+  "sql-parser.mly"
+  "keywords.mly"
+  "yacc-output.ml"
+  "fancy-output.ml"
+  "menhir_yacc.bench"
+  "menhir_fancy.bench"
+  "menhir_sql.bench"
+]

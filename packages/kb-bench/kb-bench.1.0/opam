@@ -1,0 +1,12 @@
+opam-version: "2.0"
+name: "kb-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+build: [ [make "-C" "kb"] ]
+substs: [
+  "kb.bench"
+  "kb-no-exc.bench"
+]
+depends: ["ocaml"]
+flags: light-uninstall

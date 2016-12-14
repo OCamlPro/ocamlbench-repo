@@ -1,0 +1,3 @@
+((name "thread-ring-async-pipe")
+ (descr "Message passing between threads")
+ (cmd (%{bin}%/thread_ring_async_pipe)))

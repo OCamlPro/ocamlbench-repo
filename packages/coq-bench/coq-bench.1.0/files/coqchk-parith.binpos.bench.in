@@ -1,0 +1,4 @@
+((name coqchk-parith.binpos)
+ (descr "coq check on PArith.BinPos")
+ (cmd (%{bin}%/coqchk.opt Coq.PArith.BinPos))
+ (speed Slow))

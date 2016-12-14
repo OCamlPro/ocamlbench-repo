@@ -1,0 +1,5 @@
+((name frama-c-idct)
+ (descr "frama-c on idct")
+ (cmd
+  (%{bin}%/frama-c %{frama-c-bench:share}%/idct/idct.c %{frama-c-bench:share}%/idct/ieee_1180_1990.c -float-normal -no-warn-signed-overflow -val -deps -out -input %{frama-c-bench:share}%/idct/idct.c %{frama-c-bench:share}%/math.c -journal-disable -remove-redundant-alarms  -val-builtin sqrt:Frama_C_sqrt,cos:Frama_C_cos_precise -no-val-show-progress -slevel 45))
+ (speed Slower))

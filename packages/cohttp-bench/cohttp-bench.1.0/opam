@@ -1,0 +1,17 @@
+opam-version: "2.0"
+name: "cohttp-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
+depends: [
+  "ocaml"
+  "lwt" {= "2.4.8"}
+  "async" {= "112.17.00"}
+  "cohttp" {= "0.15.2"}
+]
+build: [ [make "-C" "cohttp"] ]
+substs: [
+  "cohttp_lwt.bench"
+  "cohttp_async.bench"
+]
+flags: light-uninstall

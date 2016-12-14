@@ -1,0 +1,42 @@
+((name compcert-raytracer)
+ (descr "Benchmark of compcert on its raytracer test code")
+ (cmd
+  (%{bin}%/ccomp
+    -c
+    -stdlib %{compcert:lib}%/
+    -fstruct-return
+    -lm
+    -dasm
+    -I %{compcert-bench:share}%/raytracer
+    %{compcert-bench:share}%/raytracer/memory.c
+    %{compcert-bench:share}%/raytracer/gmllexer.c
+    %{compcert-bench:share}%/raytracer/gmlparser.c
+    %{compcert-bench:share}%/raytracer/eval.c
+    %{compcert-bench:share}%/raytracer/arrays.c
+    %{compcert-bench:share}%/raytracer/vector.c
+    %{compcert-bench:share}%/raytracer/matrix.c
+    %{compcert-bench:share}%/raytracer/object.c
+    %{compcert-bench:share}%/raytracer/intersect.c
+    %{compcert-bench:share}%/raytracer/surface.c
+    %{compcert-bench:share}%/raytracer/light.c
+    %{compcert-bench:share}%/raytracer/simplify.c
+    %{compcert-bench:share}%/raytracer/render.c
+    %{compcert-bench:share}%/raytracer/main.c
+  ))
+ (file_check
+   (("%{compcert-bench:share}%/raytracer/arrays.s" "%{compcert-bench:share}%/raytracer/arrays.s.expected")
+    ("%{compcert-bench:share}%/raytracer/eval.s" "%{compcert-bench:share}%/raytracer/eval.s.expected")
+    ("%{compcert-bench:share}%/raytracer/gmllexer.s" "%{compcert-bench:share}%/raytracer/gmllexer.s.expected")
+    ("%{compcert-bench:share}%/raytracer/gmlparser.s" "%{compcert-bench:share}%/raytracer/gmlparser.s.expected")
+    ("%{compcert-bench:share}%/raytracer/intersect.s" "%{compcert-bench:share}%/raytracer/intersect.s.expected")
+    ("%{compcert-bench:share}%/raytracer/light.s" "%{compcert-bench:share}%/raytracer/light.s.expected")
+    ("%{compcert-bench:share}%/raytracer/main.s" "%{compcert-bench:share}%/raytracer/main.s.expected")
+    ("%{compcert-bench:share}%/raytracer/matrix.s" "%{compcert-bench:share}%/raytracer/matrix.s.expected")
+    ("%{compcert-bench:share}%/raytracer/memory.s" "%{compcert-bench:share}%/raytracer/memory.s.expected")
+    ("%{compcert-bench:share}%/raytracer/object.s" "%{compcert-bench:share}%/raytracer/object.s.expected")
+    ("%{compcert-bench:share}%/raytracer/render.s" "%{compcert-bench:share}%/raytracer/render.s.expected")
+    ("%{compcert-bench:share}%/raytracer/simplify.s" "%{compcert-bench:share}%/raytracer/simplify.s.expected")
+    ("%{compcert-bench:share}%/raytracer/surface.s" "%{compcert-bench:share}%/raytracer/surface.s.expected")
+    ("%{compcert-bench:share}%/raytracer/vector.s" "%{compcert-bench:share}%/raytracer/vector.s.expected"))
+ )
+ (speed Slow))

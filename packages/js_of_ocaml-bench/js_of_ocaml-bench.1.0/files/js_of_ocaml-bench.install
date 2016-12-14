@@ -1,0 +1,4 @@
+share : [
+  "bytecode"
+  "js_of_ocaml.bench"
+]

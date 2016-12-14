@@ -1,0 +1,3 @@
+((name "valet-lwt")
+ (descr "Access control simulation with Lwt")
+ (cmd (%{bin}%/valet_test_lwt 200)))

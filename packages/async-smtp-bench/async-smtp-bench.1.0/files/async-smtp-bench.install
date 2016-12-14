@@ -1,0 +1,7 @@
+bin: [
+  "async_smtp/_build/test_smtp.native" {"async_smtp_bench"}
+]
+
+share: [
+  "async_smtp.bench"
+]

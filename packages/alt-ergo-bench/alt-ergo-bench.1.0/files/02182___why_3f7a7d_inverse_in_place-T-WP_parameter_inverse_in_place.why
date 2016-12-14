@@ -1,0 +1,158 @@
+(* this is a prelude for Alt-Ergo*)
+(* this is a prelude for Alt-Ergo integer arithmetic *)
+logic match_bool : bool, 'a, 'a -> 'a
+
+axiom match_bool_True :
+  (forall z:'a. forall z1:'a. (match_bool(true, z, z1) = z))
+
+axiom match_bool_False :
+  (forall z:'a. forall z1:'a. (match_bool(false, z, z1) = z1))
+
+type qtmark
+
+axiom CompatOrderMult :
+  (forall x:int. forall y:int. forall z:int. ((x <= y) -> ((0 <= z) ->
+  ((x * z) <= (y * z)))))
+
+type 'a ref = { contents : 'a
+}
+
+logic const : 'b -> ('a,'b) farray
+
+axiom Const :
+  (forall b:'b1. forall a:'a1. (((const(b) : ('a1,'b1) farray)[a]) = b))
+
+type 'a array1 = { length : int; elts : (int,'a) farray
+}
+
+function get(a1: 'a array1, i: int) : 'a = ((a1).elts[i])
+
+function set(a: 'a1 array1, i: int, v: 'a1) : 'a1 array1 = { length =
+  (a).length; elts = ((a).elts[i <- v]) }
+
+function make(n: int, v: 'a) : 'a array1 = { length = n; elts =
+  (const(v) : (int,'a) farray) }
+
+function prefix_tl(x: int) : int = ((-x) - 1)
+
+predicate pr(a: (int,int) farray, n: int) = (0 <= (a[n]))
+
+logic num_of : (int,int) farray, int, int -> int
+
+axiom Num_of_empty :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((b <= a) ->
+  (num_of(p, a, b) = 0)))
+
+axiom Num_of_right_no_add :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <  b) ->
+  ((not pr(p, (b - 1))) -> (num_of(p, a, b) = num_of(p, a, (b - 1))))))
+
+axiom Num_of_right_add :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <  b) -> (pr(p,
+  (b - 1)) -> (num_of(p, a, b) = (1 + num_of(p, a, (b - 1)))))))
+
+axiom Num_of_bounds :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <  b) ->
+  (0 <= num_of(p, a, b))))
+
+axiom Num_of_bounds1 :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <  b) ->
+  (num_of(p, a, b) <= (b - a))))
+
+axiom Num_of_append :
+  (forall p:(int,int) farray. forall a:int. forall b:int. forall c:int.
+  (((a <= b) and (b <= c)) -> (num_of(p, a, c) = (num_of(p, a, b) + num_of(p,
+  b, c)))))
+
+axiom Num_of_left_no_add :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <  b) ->
+  ((not pr(p, a)) -> (num_of(p, a, b) = num_of(p, (a + 1), b)))))
+
+axiom Num_of_left_add :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <  b) -> (pr(p,
+  a) -> (num_of(p, a, b) = (1 + num_of(p, (a + 1), b))))))
+
+axiom Empty :
+  (forall p:(int,int) farray. forall a:int. forall b:int.
+  ((forall n:int. (((a <= n) and (n <  b)) -> (not pr(p, n)))) -> (num_of(p,
+  a, b) = 0)))
+
+axiom Full :
+  (forall p:(int,int) farray. forall a:int. forall b:int. ((a <= b) ->
+  ((forall n:int. (((a <= n) and (n <  b)) -> pr(p, n))) -> (num_of(p, a,
+  b) = (b - a)))))
+
+axiom num_of_increasing :
+  (forall p:(int,int) farray. forall i:int. forall j:int. forall k:int.
+  (((i <= j) and (j <= k)) -> (num_of(p, i, j) <= num_of(p, i, k))))
+
+axiom num_of_strictly_increasing :
+  (forall p:(int,int) farray. forall i:int. forall j:int. forall k:int.
+  forall l:int. (((i <= j) and ((j <= k) and (k <  l))) -> (pr(p, k) ->
+  (num_of(p, i, j) <  num_of(p, i, l)))))
+
+axiom num_of_change_any :
+  (forall p1:(int,int) farray. forall p2:(int,int) farray. forall a:int.
+  forall b:int.
+  ((forall j:int. (((a <= j) and (j <  b)) -> (pr(p1, j) -> pr(p2, j)))) ->
+  (num_of(p1, a, b) <= num_of(p2, a, b))))
+
+axiom num_of_change_some :
+  (forall p1:(int,int) farray. forall p2:(int,int) farray. forall a:int.
+  forall b:int. forall i:int. (((a <= i) and (i <  b)) ->
+  ((forall j:int. (((a <= j) and (j <  b)) -> (pr(p1, j) -> pr(p2, j)))) ->
+  ((not pr(p1, i)) -> (pr(p2, i) -> (num_of(p1, a, b) <  num_of(p2, a,
+  b)))))))
+
+axiom num_of_decrease :
+  (forall m:(int,int) farray. forall l:int. forall r:int. forall i:int.
+  forall v:int. (((l <= i) and (i <  r)) -> ((0 <= (m[i])) -> ((v <  0) ->
+  (num_of((m[i <- v]), l, r) <  num_of(m, l, r))))))
+
+predicate is_permutation(a: int array1) =
+  (forall i:int. (((0 <= i) and (i <  (a).length)) -> (((0 <= get(a, i)) and
+  (get(a, i) <  (a).length)) and
+  (forall j:int. (((0 <= j) and (j <  (a).length)) -> ((not (i = j)) ->
+  (not (get(a, i) = get(a, j)))))))))
+
+axiom is_permutation_inverse :
+  (forall a:int array1. forall b:int array1. (((a).length = (b).length) ->
+  (is_permutation(a) ->
+  ((forall i:int. (((0 <= i) and (i <  (b).length)) -> ((0 <= get(b, i)) and
+   (get(b, i) <  (b).length)))) ->
+  ((forall i:int. (((0 <= i) and (i <  (b).length)) -> (get(a, get(b,
+   i)) = i))) ->
+  is_permutation(b))))))
+
+predicate loopinvariant(old: int array1, a: int array1, m: int, mqt: int,
+  n: int) =
+  ((forall e:int. (((0 <= e) and (e <  n)) -> (((-n) <= get(a, e)) and
+   (get(a, e) <  n)))) and
+  ((forall e:int. (((m <  e) and (e <  n)) -> (0 <= get(a, e)))) and
+  ((forall e:int. (((m <  e) and (e <  n)) -> (get(old, get(a, e)) = e))) and
+  ((forall e:int. (((0 <= e) and (e <= mqt)) -> ((0 <= get(a, e)) ->
+   (get(old, e) = get(a, e))))) and
+  ((forall e:int. (((0 <= e) and (e <= m)) -> (get(a, e) <= m))) and
+  (forall e:int. (((0 <= e) and (e <= mqt)) -> ((get(a, e) <  0) ->
+  ((get(old, prefix_tl(get(a, e))) = e) and ((prefix_tl(get(a, e)) <= m) ->
+  (get(a, prefix_tl(get(a, e))) <  0)))))))))))
+
+goal WP_parameter_inverse_in_place :
+  (forall a6:int. forall a7:(int,int) farray. (((0 <= a6) and
+  is_permutation({ length = a6; elts = a7 })) -> ((0 <= (a6 - 1)) ->
+  (forall a8:(int,int) farray.
+  (forall m1:int. (((m1 <= (a6 - 1)) and (0 <= m1)) -> (loopinvariant({
+  length = a6; elts = a7 }, { length = a6; elts = a8 }, m1, m1, a6) ->
+  (((0 <= a6) and ((0 <= m1) and (m1 <  a6))) -> ((0 <= (a8[m1])) ->
+  (((0 <= m1) and (m1 <  a6)) ->
+  (forall a9:(int,int) farray. (((0 <= a6) and (a9 = (a8[m1 <- (-1)]))) ->
+  (((0 <= (a8[m1])) and ((a8[m1]) <  a6)) ->
+  (forall i3:int. ((i3 = (a9[(a8[m1])])) ->
+  (forall k2:int. forall j2:int. forall i4:int. forall a10:(int,int) farray.
+  ((((((a10[k2]) = i4) and (i4 <= m1)) and (((0 <= k2) and (k2 <= m1)) and
+  (((prefix_tl(m1) <= j2) and (j2 <  0)) and (((a7[prefix_tl(j2)]) = k2) and
+  (((a10[prefix_tl(j2)]) <  0) and ((a10[m1]) <  0)))))) and
+  ((forall e:int. (((0 <= e) and (e <  m1)) -> (((a10[e]) <  0) ->
+   (not ((a10[e]) = j2))))) and
+  loopinvariant({ length = a6; elts = a7 }, { length = a6; elts = a10 }, m1,
+  (m1 - 1), a6))) -> ((not (0 <= i4)) -> (k2 = m1)))))))))))))))))))

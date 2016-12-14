@@ -1,0 +1,11 @@
+opam-version: "2.0"
+name: "yojson-bench"
+tags: [ "benchmark" ]
+version: "1.0"
+maintainer: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
+depends: ["ocaml" "yojson" "json-bench-data"]
+build: [ [make "-C" "yojson"] ]
+substs: [
+  "ydump_sample.bench"
+]
+flags: light-uninstall

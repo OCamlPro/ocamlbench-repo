@@ -1,0 +1,8 @@
+bin: [
+  "lexifi-g2pp/run.exe" {"lexifi-g2pp"}
+]
+
+share: [
+  "lexifi-g2pp.bench"
+  "lexifi-g2pp-bench.output"
+]
