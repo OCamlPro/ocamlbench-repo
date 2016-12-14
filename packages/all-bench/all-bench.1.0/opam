@@ -3,9 +3,7 @@ name: "all-bench"
 maintainer: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
 authors: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
 license: "GPLv2"
-
 depends: [
-  "ocaml"
   "alt-ergo-bench"
   "async-echo-bench"
   "core-micro-bench"
@@ -34,4 +32,3 @@ depends: [
   "numerical-analysis-bench"
   "cpdf-bench"
 ]
-flags: light-uninstall
