@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 21aa5c7..28132c7 100755
+--- a/configure
++++ b/configure
+@@ -244,7 +244,7 @@ missingtools=false
+ echo "Testing Coq... " | tr -d '\n'
+ coq_ver=`coqc -v 2>/dev/null | sed -n -e 's/The Coq Proof Assistant, version \([^ ]*\).*$/\1/p'`
+ case "$coq_ver" in
+-  8.4pl*)
++  8.4pl*|8.5*)
+         echo "version $coq_ver -- good!";;
+   ?.*)
+         echo "version $coq_ver -- UNSUPPORTED"
