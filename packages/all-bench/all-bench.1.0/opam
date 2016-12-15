@@ -4,7 +4,6 @@ maintainer: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
 authors: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
 license: "GPLv2"
 depends: [
-  "alt-ergo-bench"
   "async-echo-bench"
   "core-micro-bench"
   "async-rpc-bench"
