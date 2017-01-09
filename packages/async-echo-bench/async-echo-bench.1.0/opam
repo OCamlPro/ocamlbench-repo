@@ -5,8 +5,8 @@ version: "1.0"
 maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
 depends: [
   "ocaml"
-  "async" {= "112.17.00"}
-  "core" {= "112.17.00"}
+  "async" {>= "112.17.00"}
+  "core" {>= "112.17.00"}
 ]
 build: [ [make "-C" "async_echo"] ]
 substs: [

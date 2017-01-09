@@ -6,6 +6,6 @@ maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
 build: [ [make "-C" "core_tests"] ]
 depends: [
   "ocaml"
-  "core" {= "112.17.00"}
+  "core" {>= "112.17.00"}
 ]
 flags: light-uninstall
