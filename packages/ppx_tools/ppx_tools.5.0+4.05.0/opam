@@ -16,5 +16,5 @@ install: [make "install"]
 remove: ["ocamlfind" "remove" "ppx_tools"]
 dev-repo: "git://github.com/alainfrisch/ppx_tools.git"
 url {
-  src: "git+https://github.com/alainfrisch/ppx_tools.git#master"
+  src: "git+https://github.com/alainfrisch/ppx_tools.git#4.05"
 }
