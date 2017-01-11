@@ -27,5 +27,5 @@ dev-repo: "https://github.com/ocaml/camlp4.git"
 conflicts: ["ocaml-system"]
 flags: light-uninstall
 url {
-  src: "https://github.com/ocaml/camlp4.git#trunk"
+  src: "git+https://github.com/ocaml/camlp4.git#trunk"
 }
