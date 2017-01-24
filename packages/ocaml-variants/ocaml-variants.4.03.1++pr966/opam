@@ -10,3 +10,4 @@ install: [make "install"]
 url {
   src: "git://github.com/mshinwell/ocaml#pr966-4.03"
 }
+conflict-class: "ocaml-core-compiler"

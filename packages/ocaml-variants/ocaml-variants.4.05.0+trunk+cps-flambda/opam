@@ -11,3 +11,4 @@ setenv: [OCAMLPARAM = "_,O3=1"]
 url {
   src: "git://github.com/mshinwell/ocaml#cps_types"
 }
+conflict-class: "ocaml-core-compiler"

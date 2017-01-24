@@ -10,3 +10,4 @@ install: [make "install"]
 url {
   src: "git://github.com/mshinwell/ocaml#eval_order"
 }
+conflict-class: "ocaml-core-compiler"

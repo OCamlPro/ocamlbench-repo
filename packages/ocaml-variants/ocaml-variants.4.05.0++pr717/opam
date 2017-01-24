@@ -10,3 +10,4 @@ install: [make "install"]
 url {
   src: "git://github.com/maranget/ocaml#PR7241"
 }
+conflict-class: "ocaml-core-compiler"
