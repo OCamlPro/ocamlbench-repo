@@ -9,6 +9,6 @@ build: [
 install: [make "install"]
 setenv: [OCAMLPARAM = "_,O3=1"]
 url {
-  src: "git://github.com/xclerc/ocaml#inlining-tries-4.04"
+  src: "git://github.com/xclerc/ocaml#inlining-tries-4.05"
 }
 conflict-class: "ocaml-core-compiler"
