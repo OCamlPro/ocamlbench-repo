@@ -2,7 +2,7 @@ opam-version: "2.0"
 maintainer: "louis.gesbert@ocamlpro.com"
 flags: compiler
 build: [
-  ["./configure" "-prefix" prefix "-with-debug-runtime" "-flambda"]
+  ["./configure" "-prefix" prefix "-flambda" "-with-debug-runtime"]
   [make "world"]
   [make "world.opt"]
 ]
