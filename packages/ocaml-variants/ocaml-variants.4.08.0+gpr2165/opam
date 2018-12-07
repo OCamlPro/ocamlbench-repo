@@ -1,0 +1,13 @@
+opam-version: "2.0"
+maintainer: "alain.frisch@lexifi.com"
+flags: compiler
+build: [
+  ["./configure" "-prefix" prefix "-with-debug-runtime"]
+  [make "world"]
+  [make "world.opt"]
+]
+install: [make "install"]
+url {
+  src: "git://github.com/alainfrisch/ocaml#unbox_cmm"
+}
+conflict-class: "ocaml-core-compiler"
