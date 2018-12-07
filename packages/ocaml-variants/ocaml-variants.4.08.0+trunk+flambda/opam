@@ -1,8 +1,8 @@
 opam-version: "2.0"
-maintainer: "mshinwell@gmail.com"
+maintainer: "louis.gesbert@ocamlpro.com"
 flags: compiler
 build: [
-  ["./configure" "-prefix" prefix "-with-debug-runtime" "-no-naked-pointers"]
+  ["./configure" "-prefix" prefix "-flambda" "-with-debug-runtime"]
   [make "world"]
   [make "world.opt"]
 ]

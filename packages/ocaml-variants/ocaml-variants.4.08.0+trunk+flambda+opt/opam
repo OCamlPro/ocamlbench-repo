@@ -1,5 +1,5 @@
 opam-version: "2.0"
-maintainer: "xclerc@janestreet.com"
+maintainer: "louis.gesbert@ocamlpro.com"
 flags: compiler
 build: [
   ["./configure" "-prefix" prefix "-with-debug-runtime"]
@@ -7,7 +7,8 @@ build: [
   [make "world.opt"]
 ]
 install: [make "install"]
-    url {
-  src: "git://github.com/xclerc/ocaml#matchbool"
+setenv: [OCAMLPARAM = "_,O3=1"]
+url {
+  src: "git://github.com/ocaml/ocaml#trunk"
 }
-  conflict-class: "ocaml-core-compiler"
+conflict-class: "ocaml-core-compiler"

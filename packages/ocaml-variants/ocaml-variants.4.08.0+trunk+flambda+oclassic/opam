@@ -1,5 +1,5 @@
 opam-version: "2.0"
-maintainer: "mshinwell@gmail.com"
+maintainer: "louis.gesbert@ocamlpro.com"
 flags: compiler
 build: [
   ["./configure" "-prefix" prefix "-with-debug-runtime"]
@@ -7,7 +7,8 @@ build: [
   [make "world.opt"]
 ]
 install: [make "install"]
+setenv: [OCAMLPARAM = "_,Oclassic=1"]
 url {
-  src: "git://github.com/mshinwell/ocaml#csr"
+  src: "git://github.com/ocaml/ocaml#trunk"
 }
 conflict-class: "ocaml-core-compiler"
